@@ -27,18 +27,15 @@ async function fetchFromBCV() {
   const $ = cheerio.load(res.data);
   const tasas = {};
 
-  $('div.recuadrotsmc').each((_, el) => {
-    const text = $(el).text().replace(/\s+/g, ' ').trim();
-    const match = text.match(/\b(USD|EUR|CNY|TRY|RUB)\b\s*([\d.,]+)/i);
-    if (match) {
-      const codigo = match[1].toUpperCase();
-      const valor = parseNumber(match[2]);
-      if (valor && valor > 0) {
-        if (codigo === 'TRY') tasas.try_ = valor;
-        else tasas[codigo.toLowerCase()] = valor;
+    $('div.recuadrotsmc').each((_, el) => {
+      const text = $(el).text().replace(/\s+/g, ' ').trim();
+      const match = text.match(/\b(USD|EUR)\b\s*([\d.,]+)/i);
+      if (match) {
+        const codigo = match[1].toUpperCase();
+        const valor = parseNumber(match[2]);
+        if (valor && valor > 0) tasas[codigo.toLowerCase()] = valor;
       }
-    }
-  });
+    });
 
   const fechaEl = $('span.date-display-single, div.pull-right dinpro center').first();
   const fecha = fechaEl.text().trim()
@@ -49,9 +46,6 @@ async function fetchFromBCV() {
   return {
     usd: tasas.usd || null,
     eur: tasas.eur || null,
-    cny: tasas.cny || null,
-    try_: tasas.try_ || null,
-    rub: tasas.rub || null,
     fecha: fecha,
   };
 }
@@ -103,9 +97,6 @@ module.exports = async (req, res) => {
       monedas: {
         USD: formatRate(resultado.usd),
         EUR: resultado.eur && resultado.eur > 0 ? formatRate(resultado.eur) : null,
-        CNY: resultado.cny && resultado.cny > 0 ? formatRate(resultado.cny) : null,
-        TRY: resultado.try_ && resultado.try_ > 0 ? formatRate(resultado.try_) : null,
-        RUB: resultado.rub && resultado.rub > 0 ? formatRate(resultado.rub) : null,
       },
       ultima_actualizacion: fuente + (resultado.fecha ? ' | Fecha valor: ' + resultado.fecha : ' | ' + ahora),
     });
