@@ -7,111 +7,68 @@ function parseNumber(str) {
   if (!str || typeof str !== 'string') return null;
   const cleaned = str.replace(/[^\d.,]/g, '').trim();
   const normalized = cleaned.replace(',', '.');
-  const num = parseFloat(normalized);
-  return isNaN(num) ? null : num;
+  return parseFloat(normalized);
+}
+
+function formatRate(val) {
+  return val.toFixed(2).replace('.', ',');
 }
 
 async function fetchFromBCV() {
   const res = await axios.get(BCV_URL, {
     timeout: 10000,
     headers: {
-      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
       'Accept-Language': 'es-ES,es;q=0.9',
-      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
     },
     httpsAgent: new (require('https').Agent)({ rejectUnauthorized: false }),
   });
 
   const $ = cheerio.load(res.data);
-  const rows = [];
-  $('#datos tbody tr, .contenedor .centrado table tbody tr, table tbody tr').each((_, el) => {
-    const cells = $(el).find('td');
-    if (cells.length >= 2) {
-      const label = $(cells[0]).text().trim();
-      const value = $(cells[1]).text().trim();
-      rows.push({ label, value });
+  const tasas = {};
+
+  $('div.recuadrotsmc').each((_, el) => {
+    const text = $(el).text().replace(/\s+/g, ' ').trim();
+    const match = text.match(/\b(USD|EUR|CNY|TRY|RUB)\b\s*([\d.,]+)/i);
+    if (match) {
+      const codigo = match[1].toUpperCase();
+      const valor = parseNumber(match[2]);
+      if (valor && valor > 0) tasas[codigo] = valor;
     }
   });
 
-  let usd = null, eur = null, fecha = null;
-
-  for (const row of rows) {
-    const l = row.label.toLowerCase();
-    if (!usd && (l.includes('dólar') || l.includes('dollar') || l.includes('usd') || l.includes('dolar')) && !l.includes('euro')) {
-      usd = parseNumber(row.value);
-    }
-    if (!eur && (l.includes('euro') || l.includes('eur'))) {
-      eur = parseNumber(row.value);
-    }
-  }
-
-  if (!usd || !eur) {
-    $('.ENCSS003-1, .valor, [class*="venta"], [class*="tasa"]').each((_, el) => {
-      const text = $(el).text().trim();
-      const num = parseNumber(text);
-      if (num && num > 1) {
-        if (!usd) usd = num;
-        else if (!eur) { eur = num; }
-      }
-    });
-  }
-
-  const fechaEl = $('span[class*="fecha"], .date, [class*="date"], time').first();
-  if (fechaEl.length) {
-    fecha = fechaEl.text().trim();
-  }
-
+  let fecha = null;
+  const $body = $('body');
+  const posibles = $body.find('.field-content, .date-display-single, [class*="fecha"]');
+  posibles.each((_, el) => {
+    const txt = $(el).text().trim();
+    if (txt.match(/\d{1,2}\s+\w+\s+\d{4}/)) { fecha = txt; return false; }
+  });
   if (!fecha) {
-    const dateEl = $('input[name*="fecha"], [data-fecha]').first();
-    if (dateEl.length) {
-      fecha = dateEl.attr('value') || dateEl.attr('data-fecha') || '';
-    }
-  }
-
-  if (!fecha) {
-    const bodyText = $('body').text();
-    const dateMatch = bodyText.match(/(\d{1,2}\/\d{1,2}\/\d{4})/);
+    const bodyText = $body.text();
+    const dateMatch = bodyText.match(/(\w+,\s+\d{1,2}\s+[а-яА-Я\w]+\s+\d{4})/i);
     if (dateMatch) fecha = dateMatch[1];
   }
 
-  return { usd, eur, fecha };
+  return {
+    usd: tasas.USD || null,
+    eur: tasas.EUR || null,
+    fecha: fecha,
+  };
 }
 
-async function fetchFromFexant() {
-  const res = await axios.get('https://www.fexant.com/api/v1/bank/BCV/rates', { timeout: 8000 });
-  if (res.data && res.data.rates) {
-    return {
-      usd: res.data.rates.USD || null,
-      eur: res.data.rates.EUR || null,
-      fecha: res.data.date || null,
-    };
-  }
-  return { usd: null, eur: null, fecha: null };
-}
-
-async function fetchFromBCVDirect() {
+async function fetchFromBCVBackend() {
   try {
-    const res = await axios.get('https://www.bcv.org.ve/backend/abrir-bcv-euro', { timeout: 8000 });
-    const eurRaw = res.data;
-    const eurVal = typeof eurRaw === 'string'
-      ? parseNumber(eurRaw)
-      : (eurRaw?. euro || eurRaw?. value || eurRaw?. price || eurRaw?. rate || null);
-
-    const resUSD = await axios.get('https://www.bcv.org.ve/backend/abrir-bcv-dolar', { timeout: 8000 });
-    const usdRaw = resUSD.data;
-    const usdVal = typeof usdRaw === 'string'
-      ? parseNumber(usdRaw)
-      : (usdRaw?. dolar || usdRaw?. usd || usdRaw?. value || usdRaw?. price || usdRaw?. rate || null);
-
-    if (usdVal || eurVal) {
-      return { usd: usdVal, eur: eurVal, fecha: null };
-    }
+    const [eurRes, usdRes] = await Promise.all([
+      axios.get('https://www.bcv.org.ve/backend/abrir-bcv-euro', { timeout: 8000 }),
+      axios.get('https://www.bcv.org.ve/backend/abrir-bcv-dolar', { timeout: 8000 }),
+    ]);
+    return {
+      usd: parseNumber(String(eurRes.data)) || null,
+      eur: parseNumber(String(usdRes.data)) || null,
+    };
   } catch (_) {}
-  return { usd: null, eur: null, fecha: null };
-}
-
-function formatRate(val) {
-  return val.toFixed(2).replace('.', ',');
+  return { usd: null, eur: null };
 }
 
 module.exports = async (req, res) => {
@@ -120,8 +77,7 @@ module.exports = async (req, res) => {
 
   const estrategias = [
     { name: 'BCV (www.bcv.org.ve)', fn: fetchFromBCV },
-    { name: 'Fexant API', fn: fetchFromFexant },
-    { name: 'BCV Backend Directo', fn: fetchFromBCVDirect },
+    { name: 'BCV Backend', fn: fetchFromBCVBackend },
   ];
 
   let resultado = null;
@@ -135,16 +91,13 @@ module.exports = async (req, res) => {
         fuente = estr.name;
         break;
       }
-    } catch (err) {
-      continue;
-    }
+    } catch (_) {}
   }
 
   if (resultado) {
     const ahora = new Date().toLocaleString('es-ES', {
       timeZone: 'America/Caracas',
-      day: '2-digit', month: '2-digit', year: 'numeric',
-      hour: '2-digit', minute: '2-digit',
+      day: '2-digit', month: 'long', year: 'numeric',
     });
     return res.status(200).json({
       success: true,
@@ -152,14 +105,13 @@ module.exports = async (req, res) => {
         dolar: formatRate(resultado.usd),
         euro: resultado.eur && resultado.eur > 0 ? formatRate(resultado.eur) : null,
       },
-      ultima_actualizacion: `${fuente} | ${resultado.fecha || ahora}`,
+      ultima_actualizacion: fuente + (resultado.fecha ? ' | Fecha valor: ' + resultado.fecha : ' | ' + ahora),
     });
   }
 
   return res.status(200).json({
     success: false,
-    error: 'No se pudo obtener la tasa de cambio',
     monedas: { dolar: null, euro: null },
-    ultima_actualizacion: 'Sin datos - todos los endpoints fallaron',
+    ultima_actualizacion: 'Sin datos',
   });
 };
