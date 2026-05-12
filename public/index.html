@@ -275,7 +275,11 @@
                 Object.keys(data.monedas).forEach(k => {
                     if (data.monedas[k]) {
                         allRatesDisplay[k] = data.monedas[k];
-                        allRates[k] = parseFloat(data.monedas[k].replace(',', '.'));
+                        if (data.tasas && data.tasas[k]) {
+                            allRates[k] = data.tasas[k];
+                        } else {
+                            allRates[k] = parseFloat(data.monedas[k].replace(',', '.'));
+                        }
                     }
                 });
                 onCurrencyChange();
