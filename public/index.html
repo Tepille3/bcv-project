@@ -3,57 +3,95 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Monitor de Divisas</title>
+    <title>Monitor de Divisas BCV</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: #f0f2f5; margin: 0; }
-        .card { background: white; padding: 2rem; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; width: 300px; }
-        .precio { font-size: 2.5rem; color: #004b93; font-weight: bold; margin: 10px 0; }
+        * { box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; background: #f0f2f5; margin: 0; padding: 20px; }
+        .card { background: white; padding: 2rem; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; width: 320px; max-width: 100%; }
+        .precio { font-size: 2.2rem; color: #004b93; font-weight: bold; margin: 10px 0; }
+        .precio.euro { color: #b83b0e; }
         .status { padding: 5px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; display: inline-block; margin-bottom: 15px; }
         .loading { background: #fff3cd; color: #856404; }
         .success { background: #d4edda; color: #155724; }
-        .error { background: #f8d7da; color: #721c24; }
-        small { color: #666; display: block; margin-top: 15px; }
+        .offline { background: #f8d7da; color: #721c24; }
+        small { color: #666; display: block; margin-top: 15px; font-size: 0.85rem; }
+        .divider { border: none; border-top: 1px solid #eee; margin: 20px 0; }
+        h2 { margin: 0 0 5px 0; color: #333; font-size: 1.2rem; }
+        .subtitle { color: #666; font-size: 0.85rem; margin: 0 0 20px 0; }
+        .currency-label { font-size: 0.9rem; color: #555; margin-bottom: 0; font-weight: 500; }
+        .currency-value { margin: 0; }
     </style>
 </head>
 <body>
     <div class="card">
-        <div id="badge" class="status loading">Intentando conectar...</div>
-        <h2 style="margin:0; color: #333;">Tasa Oficial BCV</h2>
-        
-        <p style="margin-bottom: 0;">Dólar (USD)</p>
-        <div id="usd" class="precio">...</div>
-        
+        <div id="badge" class="status loading">Conectando...</div>
+        <h2>Tasa Oficial BCV</h2>
+        <p class="subtitle">Banco Central de Venezuela</p>
+
+        <p class="currency-label">Dólar (USD)</p>
+        <div id="usd" class="precio currency-value">...</div>
+
+        <hr class="divider">
+
+        <p class="currency-label">Euro (EUR)</p>
+        <div id="eur" class="precio euro currency-value">...</div>
+
         <small id="fecha">Sincronizando con el servidor...</small>
     </div>
 
     <script>
-        async function consultarTasa() {
-            const badge = document.getElementById('badge');
-            const usdText = document.getElementById('usd');
-            const fechaText = document.getElementById('fecha');
+        const badge = document.getElementById('badge');
+        const usdEl = document.getElementById('usd');
+        const eurEl = document.getElementById('eur');
+        const fechaEl = document.getElementById('fecha');
 
-            try {
-                // El '?nocache=' + Date.now() obliga a Vercel a darnos data fresca
-                const response = await fetch('/api/consulta?nocache=' + Date.now());
-                const data = await response.json();
+        function updateUI(data) {
+            if (data.success && data.monedas) {
+                badge.textContent = 'Tasa Oficial';
+                badge.className = 'status success';
 
-                if (data.success) {
-                    badge.innerText = "Conexión Exitosa";
-                    badge.className = "status success";
-                    usdText.innerText = data.monedas.dolar + " Bs";
-                    fechaText.innerText = "Actualizado: " + data.ultima_actualizacion;
+                if (data.monedas.dolar) {
+                    usdEl.textContent = data.monedas.dolar + ' Bs';
                 } else {
-                    throw new Error(data.error);
+                    usdEl.textContent = 'No disponible';
                 }
-            } catch (err) {
-                badge.innerText = "Error";
-                badge.className = "status error";
-                fechaText.innerText = "Reintentando...";
-                // Reintenta automáticamente en 5 segundos si falla
-                setTimeout(consultarTasa, 5000);
+
+                if (data.monedas.euro) {
+                    eurEl.textContent = data.monedas.euro + ' Bs';
+                } else {
+                    eurEl.textContent = 'No disponible';
+                }
+
+                if (data.ultima_actualizacion) {
+                    fechaEl.textContent = 'Fuente: ' + data.ultima_actualizacion;
+                }
+            } else {
+                badge.textContent = 'Sin datos';
+                badge.className = 'status offline';
+                usdEl.textContent = '—';
+                eurEl.textContent = '—';
+                fechaEl.textContent = 'Reintentando en 30s...';
+                setTimeout(consultarTasa, 30000);
             }
         }
-        consultarTasa();
+
+        async function consultarTasa() {
+            try {
+                const response = await fetch('/api/consulta?nocache=' + Date.now());
+                if (!response.ok) throw new Error('HTTP ' + response.status);
+                const data = await response.json();
+                updateUI(data);
+            } catch (err) {
+                badge.textContent = 'Error de conexión';
+                badge.className = 'status offline';
+                usdEl.textContent = '—';
+                eurEl.textContent = '—';
+                fechaEl.textContent = 'Reintentando en 30s...';
+                setTimeout(consultarTasa, 30000);
+            }
+        }
+
+        setTimeout(consultarTasa, 500);
     </script>
 </body>
 </html>
