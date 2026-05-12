@@ -2,29 +2,60 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Monitor de Divisas</title>
     <style>
-        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: #f0f2f5; }
-        .card { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); text-align: center; }
-        .precio { font-size: 2rem; color: #004b93; font-weight: bold; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: #f0f2f5; margin: 0; }
+        .card { background: white; padding: 2rem; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; width: 300px; }
+        .precio { font-size: 2.5rem; color: #004b93; font-weight: bold; margin: 10px 0; }
+        .status { padding: 5px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; display: inline-block; margin-bottom: 15px; }
+        .loading { background: #fff3cd; color: #856404; }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        small { color: #666; display: block; margin-top: 15px; }
     </style>
 </head>
 <body>
     <div class="card">
-        <h2>Tasa Oficial BCV</h2>
-        <p>Dólar: <span id="usd" class="precio">Cargando...</span></p>
-        <p>Euro: <span id="eur" class="precio">Cargando...</span></p>
-        <small id="fecha"></small>
+        <div id="badge" class="status loading">Intentando conectar...</div>
+        <h2 style="margin:0; color: #333;">Tasa Oficial BCV</h2>
+        
+        <p style="margin-bottom: 0;">Dólar (USD)</p>
+        <div id="usd" class="precio">...</div>
+        
+        <small id="fecha">Sincronizando con el servidor...</small>
     </div>
 
     <script>
-        fetch('/api/consulta')
-            .then(res => res.json())
-            .then(data => {
-                document.getElementById('usd').innerText = data.monedas.dolar + " Bs";
-                document.getElementById('eur').innerText = data.monedas.euro + " Bs";
-                document.getElementById('fecha').innerText = "Act: " + data.ultima_actualizacion;
-            });
+        const badge = document.getElementById('badge');
+        const usdText = document.getElementById('usd');
+        const fechaText = document.getElementById('fecha');
+
+        async function consultarTasa() {
+            try {
+                // Añadimos un timestamp para evitar que el navegador guarde el error en cache
+                const response = await fetch('/api/consulta?t=' + Date.now());
+                const data = await response.json();
+
+                if (data.success) {
+                    badge.innerText = "Conexión Exitosa";
+                    badge.className = "status success";
+                    usdText.innerText = data.monedas.dolar + " Bs";
+                    fechaText.innerText = "Última actualización: " + data.ultima_actualizacion;
+                    console.log("Datos recibidos:", data);
+                } else {
+                    throw new Error(data.error || "Error desconocido");
+                }
+            } catch (err) {
+                badge.innerText = "Error de Conexión";
+                badge.className = "status error";
+                usdText.innerText = "---";
+                fechaText.innerText = "Motivo: " + err.message;
+                console.error("Error detallado:", err);
+            }
+        }
+
+        consultarTasa();
     </script>
 </body>
 </html>
