@@ -7,13 +7,12 @@
     <style>
         :root {
             --blue: #004b93;
-            --blue-light: #1a3a6b;
             --orange: #b83b0e;
-            --orange-light: #6b2208;
             --green: #2e9e5a;
             --red: #c0392b;
             --bg: #f0f2f5;
             --card-bg: #ffffff;
+            --card-shadow: 0 4px 24px rgba(0,0,0,0.06);
             --text: #1a1a2e;
             --text-muted: #6b7280;
             --input-bg: #f3f4f6;
@@ -21,14 +20,13 @@
         }
 
         [data-theme="dark"] {
-            --bg: #0f1117;
-            --card-bg: #1a1d2e;
-            --text: #e8eaf0;
-            --text-muted: #8b95a8;
-            --input-bg: #252a3d;
-            --border: #2d3348;
-            --blue-light: #1e4080;
-            --orange-light: #7a2e12;
+            --bg: #000000;
+            --card-bg: #0d0d0d;
+            --card-shadow: 0 2px 20px rgba(255,255,255,0.04);
+            --text: #e8e8e8;
+            --text-muted: #555555;
+            --input-bg: #141414;
+            --border: #1e1e1e;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -42,7 +40,7 @@
             align-items: center;
             padding: 20px 16px 40px;
             color: var(--text);
-            transition: background 0.3s, color 0.3s;
+            transition: background 0.2s, color 0.2s;
         }
 
         .top-bar {
@@ -54,19 +52,18 @@
             margin-bottom: 20px;
         }
 
-        .app-title { display: flex; flex-direction: column; }
         .app-title h1 { font-size: 1.3rem; font-weight: 700; color: var(--blue); letter-spacing: -0.3px; }
-        .app-title span { font-size: 0.72rem; color: var(--text-muted); margin-top: 2px; }
+        .app-title span { font-size: 0.72rem; color: var(--text-muted); margin-top: 2px; display: block; }
 
         .theme-toggle {
-            background: var(--input-bg);
-            border: 1px solid var(--border);
-            border-radius: 24px;
-            width: 48px;
-            height: 28px;
+            width: 44px;
+            height: 26px;
+            border-radius: 13px;
+            border: none;
             cursor: pointer;
             position: relative;
-            transition: background 0.3s;
+            transition: background 0.2s;
+            background: var(--input-bg);
             flex-shrink: 0;
         }
         .theme-toggle::after {
@@ -74,160 +71,137 @@
             position: absolute;
             top: 3px;
             left: 3px;
-            width: 22px;
-            height: 22px;
+            width: 20px;
+            height: 20px;
             border-radius: 50%;
-            background: var(--blue);
-            transition: transform 0.3s;
+            background: #888;
+            transition: transform 0.2s, background 0.2s;
         }
-        [data-theme="dark"] .theme-toggle::after { transform: translateX(20px); background: #f0c040; }
+        [data-theme="dark"] .theme-toggle { background: #1a1a2e; }
+        [data-theme="dark"] .theme-toggle::after { transform: translateX(18px); background: #f0c040; }
 
         .card {
             background: var(--card-bg);
-            border-radius: 20px;
-            box-shadow: 0 4px 24px rgba(0,0,0,0.06);
-            padding: 24px;
+            border-radius: 18px;
+            box-shadow: var(--card-shadow);
+            padding: 22px;
             width: 100%;
             max-width: 420px;
-            margin-bottom: 20px;
-            transition: background 0.3s, box-shadow 0.3s;
+            margin-bottom: 16px;
+            transition: background 0.2s, box-shadow 0.2s;
         }
-        [data-theme="dark"] .card { box-shadow: 0 4px 24px rgba(0,0,0,0.3); }
 
         .card-top {
             display: flex;
-            align-items: flex-start;
+            align-items: center;
             justify-content: space-between;
-            margin-bottom: 20px;
+            margin-bottom: 18px;
         }
 
         .badge {
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            padding: 4px 12px;
+            padding: 4px 10px;
             border-radius: 20px;
-            font-size: 0.72rem;
+            font-size: 0.7rem;
             font-weight: 600;
         }
-        .badge.loading { background: rgba(255,193,7,0.15); color: #d4a000; }
-        .badge.success { background: rgba(46,158,90,0.15); color: var(--green); }
-        .badge.error { background: rgba(192,57,43,0.15); color: var(--red); }
-        .badge::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+        .badge.loading { background: rgba(255,193,7,0.15); color: #c8a000; }
+        .badge.success { background: rgba(46,158,90,0.12); color: var(--green); }
+        .badge.error { background: rgba(192,57,43,0.12); color: var(--red); }
+        .badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
         .badge.loading::before { animation: pulse 1.2s infinite; }
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
 
-        .currency-select-wrap { position: relative; }
         .currency-select {
             appearance: none;
             background: var(--input-bg);
             border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 7px 32px 7px 12px;
-            font-size: 0.82rem;
+            border-radius: 8px;
+            padding: 6px 28px 6px 10px;
+            font-size: 0.8rem;
             font-weight: 700;
             color: var(--text);
             cursor: pointer;
             outline: none;
             font-family: inherit;
-            transition: background 0.3s, border-color 0.3s;
-            min-width: 110px;
+            transition: background 0.2s, border-color 0.2s;
         }
         .currency-select:focus { border-color: var(--blue); }
-        .currency-select-wrap::after {
-            content: '▼';
-            position: absolute;
-            right: 10px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 0.55rem;
-            color: var(--text-muted);
-            pointer-events: none;
-        }
+        .currency-select option { font-weight: 700; }
 
-        .rate-display { text-align: center; margin-bottom: 20px; }
-        .rate-currency-row { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 6px; }
-        .rate-flag { font-size: 2rem; }
-        .rate-code { font-size: 1.1rem; font-weight: 800; color: var(--text); }
+        .rate-display { text-align: center; margin-bottom: 16px; }
+        .rate-currency-row { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 4px; }
+        .rate-flag { font-size: 1.8rem; }
+        .rate-code { font-size: 1rem; font-weight: 800; color: var(--text); }
         .rate-value {
-            font-size: 2.8rem;
+            font-size: 2.6rem;
             font-weight: 900;
             color: var(--blue);
             line-height: 1;
-            margin-bottom: 4px;
-            transition: color 0.3s;
+            margin-bottom: 2px;
+            transition: color 0.2s;
         }
         .rate-value.euro-color { color: var(--orange); }
-        .rate-unit { font-size: 0.8rem; color: var(--text-muted); font-weight: 500; }
+        .rate-unit { font-size: 0.75rem; color: var(--text-muted); font-weight: 500; }
 
         .fecha-valor {
             background: var(--input-bg);
-            border-radius: 10px;
-            padding: 10px 14px;
-            font-size: 0.8rem;
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 0.78rem;
             color: var(--text-muted);
             display: flex;
             align-items: center;
-            gap: 8px;
-            transition: background 0.3s;
+            gap: 7px;
+            transition: background 0.2s;
         }
         .fecha-valor strong { color: var(--blue); }
 
+        .calc-card { padding: 22px; }
         .calc-card h3 {
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             font-weight: 700;
             color: var(--blue);
-            margin-bottom: 16px;
+            margin-bottom: 14px;
             text-align: center;
         }
 
-        .calc-direction-tabs {
-            display: flex;
-            background: var(--input-bg);
-            border-radius: 12px;
-            padding: 4px;
-            margin-bottom: 16px;
-            gap: 4px;
-        }
-        .calc-dir-tab {
-            flex: 1;
-            padding: 9px 6px;
-            border: none;
-            border-radius: 9px;
-            background: transparent;
-            color: var(--text-muted);
-            font-weight: 600;
-            font-size: 0.78rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-family: inherit;
-        }
-        .calc-dir-tab.active {
-            background: var(--card-bg);
-            color: var(--text);
-            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+        .calc-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 10px;
         }
 
+        .calc-field { display: flex; flex-direction: column; gap: 4px; }
+        .calc-field label {
+            font-size: 0.68rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
         .calc-input-wrap {
             display: flex;
             align-items: center;
             background: var(--input-bg);
-            border-radius: 12px;
-            padding: 4px 14px;
-            margin-bottom: 10px;
+            border-radius: 10px;
+            padding: 4px 12px;
             border: 2px solid transparent;
-            transition: border-color 0.2s, background 0.3s;
+            transition: border-color 0.15s, background 0.2s;
         }
         .calc-input-wrap:focus-within { border-color: var(--blue); }
-        .calc-input-wrap label { font-size: 0.72rem; font-weight: 700; color: var(--text-muted); min-width: 36px; }
+        .calc-input-wrap.euro:focus-within { border-color: var(--orange); }
         .calc-input-wrap input {
             flex: 1;
             border: none;
             background: transparent;
-            font-size: 1.1rem;
+            font-size: 1rem;
             font-weight: 700;
             color: var(--text);
-            padding: 12px 8px;
+            padding: 10px 6px;
             outline: none;
             font-family: inherit;
             width: 100%;
@@ -236,29 +210,18 @@
         .calc-input-wrap input::-webkit-outer-spin-button,
         .calc-input-wrap input::-webkit-inner-spin-button { -webkit-appearance: none; }
         .calc-input-wrap .currency-badge {
-            font-size: 0.72rem;
+            font-size: 0.68rem;
             font-weight: 700;
-            padding: 3px 8px;
-            border-radius: 6px;
+            padding: 2px 6px;
+            border-radius: 5px;
             color: white;
             background: var(--blue);
         }
-
-        .calc-result {
-            background: var(--input-bg);
-            border-radius: 12px;
-            padding: 14px;
-            text-align: center;
-            transition: background 0.3s;
-        }
-        .calc-result .result-label { font-size: 0.72rem; color: var(--text-muted); font-weight: 500; margin-bottom: 4px; }
-        .calc-result .result-value { font-size: 1.6rem; font-weight: 800; color: var(--blue); }
-        .calc-result .result-unit { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; }
-        .calc-result .result-empty { font-size: 0.85rem; color: var(--text-muted); }
+        .calc-input-wrap .currency-badge.euro { background: var(--orange); }
 
         .spinner {
-            width: 14px;
-            height: 14px;
+            width: 12px;
+            height: 12px;
             border: 2px solid rgba(0,0,0,0.1);
             border-top-color: var(--blue);
             border-radius: 50%;
@@ -267,7 +230,7 @@
         }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        .footer { margin-top: auto; padding-top: 20px; font-size: 0.72rem; color: var(--text-muted); text-align: center; }
+        .footer { margin-top: auto; padding-top: 20px; font-size: 0.7rem; color: var(--text-muted); text-align: center; }
     </style>
 </head>
 <body data-theme="dark">
@@ -285,7 +248,7 @@
                 <span id="badge-icon"></span>
                 <span id="badge-text">Conectando...</span>
             </div>
-            <div class="currency-select-wrap">
+            <div>
                 <select class="currency-select" id="currencySelect" onchange="onCurrencyChange()">
                     <option value="USD">USD — Dólar</option>
                     <option value="EUR">EUR — Euro</option>
@@ -310,33 +273,30 @@
 
     <div class="card calc-card">
         <h3>Conversor</h3>
-        <div class="calc-direction-tabs">
-            <button class="calc-dir-tab active" id="dir-ves-to" onclick="setCalcDir('ves-to')">VES → <span id="calc-dir1-label">USD</span></button>
-            <button class="calc-dir-tab" id="dir-div-to" onclick="setCalcDir('div-to')"><span id="calc-dir2-label">USD</span> → VES</button>
-        </div>
-        <div id="calc-from" class="calc-input-wrap">
-            <label id="calc-from-label">Bs</label>
-            <input type="number" id="calc-from-input" placeholder="0,00" inputmode="decimal" oninput="convert()" />
-            <span class="currency-badge" id="calc-from-badge">Bs</span>
-        </div>
-        <div id="calc-to" class="calc-result">
-            <div class="result-label" id="calc-to-label">Resultado</div>
-            <div class="result-value" id="calc-to-value"><span class="result-empty">—</span></div>
-            <div class="result-unit" id="calc-to-unit">USD</div>
+        <div class="calc-row">
+            <div class="calc-field">
+                <label>Bolívares</label>
+                <div class="calc-input-wrap" id="wrap-bs">
+                    <input type="number" id="input-bs" placeholder="0,00" inputmode="decimal" oninput="bsChanged = true; convert()" />
+                    <span class="currency-badge" id="badge-bs">Bs</span>
+                </div>
+            </div>
+            <div class="calc-field">
+                <label id="label-div">Dólares</label>
+                <div class="calc-input-wrap" id="wrap-div">
+                    <input type="number" id="input-div" placeholder="0,00" inputmode="decimal" oninput="bsChanged = false; convert()" />
+                    <span class="currency-badge" id="badge-div">USD</span>
+                </div>
+            </div>
         </div>
     </div>
 
     <div class="footer">Fuente: bcv.org.ve · Actualización automática</div>
 
     <script>
-        const CURRENCY_DATA = {
-            USD: { flag: '💵', color: '', unit: 'USD' },
-            EUR: { flag: '💶', color: 'euro-color', unit: 'EUR' },
-        };
-
         let allRates = { USD: null, EUR: null };
         let selectedCurrency = 'USD';
-        let calcDir = 'ves-to';
+        let bsChanged = true;
         let pollTimer = null;
 
         function toggleTheme() {
@@ -347,78 +307,56 @@
 
         function onCurrencyChange() {
             selectedCurrency = document.getElementById('currencySelect').value;
-            const data = CURRENCY_DATA[selectedCurrency];
-            document.getElementById('rate-flag').textContent = data.flag;
+            const isEuro = selectedCurrency === 'EUR';
+            document.getElementById('rate-flag').textContent = isEuro ? '💶' : '💵';
             document.getElementById('rate-code').textContent = selectedCurrency;
-            document.getElementById('rate-unit-label').textContent = data.unit;
-            document.getElementById('main-rate').className = 'rate-value ' + data.color;
-            const rate = allRates[selectedCurrency];
-            document.getElementById('main-rate').textContent = rate ? rate : '—';
-            document.getElementById('calc-dir1-label').textContent = selectedCurrency;
-            document.getElementById('calc-dir2-label').textContent = selectedCurrency;
-            convert();
-        }
-
-        function setCalcDir(dir) {
-            calcDir = dir;
-            document.getElementById('dir-ves-to').classList.toggle('active', dir === 'ves-to');
-            document.getElementById('dir-div-to').classList.toggle('active', dir === 'div-to');
-            document.getElementById('calc-from-input').value = '';
+            document.getElementById('rate-unit-label').textContent = selectedCurrency;
+            document.getElementById('main-rate').className = 'rate-value ' + (isEuro ? 'euro-color' : '');
+            document.getElementById('main-rate').textContent = allRates[selectedCurrency] ? allRates[selectedCurrency] : '—';
+            document.getElementById('label-div').textContent = isEuro ? 'Euros' : 'Dólares';
+            document.getElementById('badge-div').textContent = selectedCurrency;
+            document.getElementById('badge-div').className = 'currency-badge ' + (isEuro ? 'euro' : '');
+            document.getElementById('wrap-div').className = 'calc-input-wrap ' + (isEuro ? 'euro' : '');
+            document.getElementById('input-bs').value = '';
+            document.getElementById('input-div').value = '';
+            bsChanged = true;
             convert();
         }
 
         function convert() {
-            const val = parseFloat(document.getElementById('calc-from-input').value || '0');
-            if (!val || isNaN(val)) {
-                document.getElementById('calc-to-value').innerHTML = '<span class="result-empty">—</span>';
-                return;
-            }
             const rate = allRates[selectedCurrency];
-            if (!rate) {
-                document.getElementById('calc-to-value').innerHTML = '<span class="result-empty">Sin tasa</span>';
-                return;
-            }
-            let result, unit, label, fromLabel, fromBadge;
-            if (calcDir === 'ves-to') {
-                result = val / rate;
-                unit = selectedCurrency;
-                label = val.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' Bs → ' + unit;
-                fromLabel = 'Bs';
-                fromBadge = 'Bs';
+            if (!rate) return;
+
+            if (bsChanged) {
+                const bs = parseFloat(document.getElementById('input-bs').value || '0');
+                if (bs && !isNaN(bs)) {
+                    document.getElementById('input-div').value = (bs / rate).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                } else {
+                    document.getElementById('input-div').value = '';
+                }
             } else {
-                result = val * rate;
-                unit = 'Bs';
-                label = val.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ' + selectedCurrency + ' → Bs';
-                fromLabel = selectedCurrency;
-                fromBadge = selectedCurrency;
+                const div = parseFloat(document.getElementById('input-div').value || '0');
+                if (div && !isNaN(div)) {
+                    document.getElementById('input-bs').value = (div * rate).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                } else {
+                    document.getElementById('input-bs').value = '';
+                }
             }
-            document.getElementById('calc-to-label').textContent = label;
-            document.getElementById('calc-to-value').textContent = result.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-            document.getElementById('calc-to-unit').textContent = unit;
-            document.getElementById('calc-from-label').textContent = fromLabel;
-            document.getElementById('calc-from-badge').textContent = fromBadge;
         }
 
         function updateUI(data) {
             const badge = document.getElementById('badge');
-            const badgeIcon = document.getElementById('badge-icon');
-            const badgeText = document.getElementById('badge-text');
-
+            document.getElementById('badge-icon').innerHTML = '';
             if (data.success && data.monedas) {
                 badge.className = 'badge success';
-                badgeIcon.innerHTML = '';
-                badgeText.textContent = 'Tasa Oficial BCV';
-
-                Object.keys(data.monedas).forEach(key => {
-                    const val = data.monedas[key];
-                    if (val) allRates[key] = parseFloat(val.replace(',', '.'));
+                document.getElementById('badge-text').textContent = 'Tasa Oficial BCV';
+                Object.keys(data.monedas).forEach(k => {
+                    if (data.monedas[k]) allRates[k] = data.monedas[k];
                 });
-
                 onCurrencyChange();
             } else {
                 badge.className = 'badge error';
-                badgeIcon.innerHTML = '';
-                badgeText.textContent = 'Sin datos';
+                document.getElementById('badge-text').textContent = 'Sin datos';
                 document.getElementById('main-rate').textContent = '—';
                 scheduleRetry(30000);
             }
@@ -431,31 +369,28 @@
 
         async function consultarTasa() {
             const badge = document.getElementById('badge');
-            const badgeIcon = document.getElementById('badge-icon');
             badge.className = 'badge loading';
-            badgeIcon.innerHTML = '<span class="spinner"></span>';
+            document.getElementById('badge-icon').innerHTML = '<span class="spinner"></span>';
             document.getElementById('badge-text').textContent = 'Actualizando...';
-
             try {
-                const response = await fetch('/api/consulta?nocache=' + Date.now());
-                if (!response.ok) throw new Error('HTTP ' + response.status);
-                const data = await response.json();
+                const r = await fetch('/api/consulta?nocache=' + Date.now());
+                if (!r.ok) throw new Error();
+                const data = await r.json();
                 updateUI(data);
                 if (data.ultima_actualizacion) {
-                    const fechaTexto = data.ultima_actualizacion
-                        .replace(/BCV.*\|\s*/, '').replace(/Fecha valor:\s*/i, '').trim();
-                    document.getElementById('fecha-val').textContent = fechaTexto;
+                    const txt = data.ultima_actualizacion.replace(/BCV.*\|\s*/, '').replace(/Fecha valor:\s*/i, '').trim();
+                    document.getElementById('fecha-val').textContent = txt;
                 }
                 scheduleRetry(5 * 60 * 1000);
-            } catch (err) {
+            } catch (_) {
                 badge.className = 'badge error';
-                badgeIcon.innerHTML = '';
+                document.getElementById('badge-icon').innerHTML = '';
                 document.getElementById('badge-text').textContent = 'Error de conexión';
                 scheduleRetry(30000);
             }
         }
 
-        (function initTheme() {
+        (function init() {
             document.body.dataset.theme = localStorage.getItem('theme') === 'light' ? '' : 'dark';
         })();
         setTimeout(consultarTasa, 600);
