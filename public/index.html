@@ -3,95 +3,446 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Monitor de Divisas BCV</title>
+    <title>Monitor BCV</title>
     <style>
-        * { box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; background: #f0f2f5; margin: 0; padding: 20px; }
-        .card { background: white; padding: 2rem; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; width: 320px; max-width: 100%; }
-        .precio { font-size: 2.2rem; color: #004b93; font-weight: bold; margin: 10px 0; }
-        .precio.euro { color: #b83b0e; }
-        .status { padding: 5px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; display: inline-block; margin-bottom: 15px; }
-        .loading { background: #fff3cd; color: #856404; }
-        .success { background: #d4edda; color: #155724; }
-        .offline { background: #f8d7da; color: #721c24; }
-        small { color: #666; display: block; margin-top: 15px; font-size: 0.85rem; }
-        .divider { border: none; border-top: 1px solid #eee; margin: 20px 0; }
-        h2 { margin: 0 0 5px 0; color: #333; font-size: 1.2rem; }
-        .subtitle { color: #666; font-size: 0.85rem; margin: 0 0 20px 0; }
-        .currency-label { font-size: 0.9rem; color: #555; margin-bottom: 0; font-weight: 500; }
-        .currency-value { margin: 0; }
+        :root {
+            --blue: #004b93;
+            --blue-light: #e8f0fe;
+            --orange: #b83b0e;
+            --orange-light: #fde8e0;
+            --green: #155724;
+            --green-light: #d4edda;
+            --red: #721c24;
+            --red-light: #f8d7da;
+            --yellow-light: #fff3cd;
+            --yellow-text: #856404;
+            --bg: #f0f2f5;
+            --card-shadow: 0 4px 24px rgba(0,0,0,0.08);
+            --radius: 16px;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 16px 40px;
+            color: #333;
+        }
+
+        .app-header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        .app-header h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--blue);
+            letter-spacing: -0.5px;
+        }
+        .app-header p {
+            font-size: 0.85rem;
+            color: #888;
+            margin-top: 4px;
+        }
+
+        .card {
+            background: white;
+            border-radius: var(--radius);
+            box-shadow: var(--card-shadow);
+            padding: 24px;
+            width: 100%;
+            max-width: 420px;
+            margin-bottom: 20px;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+        .badge.loading { background: var(--yellow-light); color: var(--yellow-text); }
+        .badge.success { background: var(--green-light); color: var(--green); }
+        .badge.error  { background: var(--red-light); color: var(--red); }
+        .badge::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+        .badge.loading::before { animation: pulse 1.2s infinite; }
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+        .rates-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .rate-box {
+            background: var(--blue-light);
+            border-radius: 12px;
+            padding: 16px 12px;
+            text-align: center;
+        }
+        .rate-box.euro { background: var(--orange-light); }
+        .rate-box .currency-icon {
+            font-size: 1.6rem;
+            margin-bottom: 4px;
+        }
+        .rate-box .currency-name {
+            font-size: 0.75rem;
+            color: #666;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .rate-box .currency-code {
+            font-size: 0.7rem;
+            color: #999;
+            font-weight: 600;
+        }
+        .rate-box .rate-value {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: var(--blue);
+            margin: 4px 0;
+            line-height: 1.1;
+        }
+        .rate-box.euro .rate-value { color: var(--orange); }
+        .rate-box .rate-unit {
+            font-size: 0.7rem;
+            color: #888;
+        }
+
+        .fecha-valor {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 0.82rem;
+            color: #555;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .fecha-valor .fv-icon { font-size: 1rem; }
+        .fecha-valor strong { color: var(--blue); }
+
+        .calc-card {
+            width: 100%;
+            max-width: 420px;
+        }
+        .calc-card h3 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--blue);
+            margin-bottom: 16px;
+            text-align: center;
+        }
+        .calc-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        .calc-tab {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid var(--blue);
+            border-radius: 10px;
+            background: white;
+            color: var(--blue);
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .calc-tab.active {
+            background: var(--blue);
+            color: white;
+        }
+        .calc-tab.euro-tab { border-color: var(--orange); color: var(--orange); }
+        .calc-tab.euro-tab.active { background: var(--orange); color: white; }
+
+        .calc-input-wrap {
+            display: flex;
+            align-items: center;
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 4px 14px;
+            margin-bottom: 12px;
+            border: 2px solid transparent;
+            transition: border-color 0.2s;
+        }
+        .calc-input-wrap:focus-within { border-color: var(--blue); }
+        .calc-input-wrap:focus-within.euro { border-color: var(--orange); }
+        .calc-input-wrap label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #999;
+            min-width: 40px;
+        }
+        .calc-input-wrap input {
+            flex: 1;
+            border: none;
+            background: transparent;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #333;
+            padding: 12px 8px;
+            outline: none;
+            font-family: inherit;
+            width: 100%;
+            -moz-appearance: textfield;
+        }
+        .calc-input-wrap input::-webkit-outer-spin-button,
+        .calc-input-wrap input::-webkit-inner-spin-button { -webkit-appearance: none; }
+        .calc-input-wrap .currency-badge {
+            font-size: 0.8rem;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 6px;
+            color: white;
+            background: var(--blue);
+        }
+        .calc-input-wrap .currency-badge.euro { background: var(--orange); }
+
+        .calc-result {
+            background: var(--blue-light);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+        }
+        .calc-result.euro { background: var(--orange-light); }
+        .calc-result .result-label {
+            font-size: 0.75rem;
+            color: #888;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+        .calc-result .result-value {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--blue);
+        }
+        .calc-result.euro .result-value { color: var(--orange); }
+        .calc-result .result-unit {
+            font-size: 0.8rem;
+            color: #888;
+            font-weight: 600;
+        }
+        .calc-result .result-empty {
+            font-size: 0.85rem;
+            color: #aaa;
+        }
+
+        .spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(0,0,0,0.1);
+            border-top-color: var(--blue);
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            display: inline-block;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .footer {
+            margin-top: auto;
+            padding-top: 20px;
+            font-size: 0.75rem;
+            color: #bbb;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
+    <header class="app-header">
+        <h1>Monitor BCV</h1>
+        <p>Tasa Oficial — Banco Central de Venezuela</p>
+    </header>
+
     <div class="card">
-        <div id="badge" class="status loading">Conectando...</div>
-        <h2>Tasa Oficial BCV</h2>
-        <p class="subtitle">Banco Central de Venezuela</p>
+        <div id="badge" class="badge loading">
+            <span id="badge-icon"></span>
+            <span id="badge-text">Conectando...</span>
+        </div>
 
-        <p class="currency-label">Dólar (USD)</p>
-        <div id="usd" class="precio currency-value">...</div>
+        <div class="rates-grid">
+            <div class="rate-box" id="rate-usd">
+                <div class="currency-icon">💵</div>
+                <div class="currency-name">Dólar</div>
+                <div class="currency-code">USD</div>
+                <div class="rate-value" id="usd-rate">...</div>
+                <div class="rate-unit">Bs por USD</div>
+            </div>
+            <div class="rate-box euro" id="rate-eur">
+                <div class="currency-icon">💶</div>
+                <div class="currency-name">Euro</div>
+                <div class="currency-code">EUR</div>
+                <div class="rate-value" id="eur-rate">...</div>
+                <div class="rate-unit">Bs por EUR</div>
+            </div>
+        </div>
 
-        <hr class="divider">
+        <div class="fecha-valor" id="fecha-box">
+            <span class="fv-icon">📅</span>
+            <span>Fecha Valor: <strong id="fecha-val">—</strong></span>
+        </div>
+    </div>
 
-        <p class="currency-label">Euro (EUR)</p>
-        <div id="eur" class="precio euro currency-value">...</div>
+    <div class="card calc-card">
+        <h3>🔄 Conversor de Divisas</h3>
+        <div class="calc-tabs">
+            <button class="calc-tab active" id="tab-usd" onclick="setCalcMode('usd')">VES ↔ USD</button>
+            <button class="calc-tab euro-tab" id="tab-eur" onclick="setCalcMode('eur')">VES ↔ EUR</button>
+        </div>
+        <div id="calc-from" class="calc-input-wrap">
+            <label id="calc-from-label">Bs</label>
+            <input type="number" id="calc-from-input" placeholder="0,00" inputmode="decimal" oninput="convert()" />
+            <span class="currency-badge" id="calc-from-badge">Bs</span>
+        </div>
+        <div id="calc-to" class="calc-result">
+            <div class="result-label" id="calc-to-label">Resultado</div>
+            <div class="result-value" id="calc-to-value"><span class="result-empty">—</span></div>
+            <div class="result-unit" id="calc-to-unit">USD</div>
+        </div>
+    </div>
 
-        <small id="fecha">Sincronizando con el servidor...</small>
+    <div class="footer">
+        Fuente: bcv.org.ve — Actualización automática cada 5 min
     </div>
 
     <script>
-        const badge = document.getElementById('badge');
-        const usdEl = document.getElementById('usd');
-        const eurEl = document.getElementById('eur');
-        const fechaEl = document.getElementById('fecha');
+        let tasas = { usd: null, eur: null };
+        let calcMode = 'usd';
+        let pollTimer = null;
 
-        function updateUI(data) {
-            if (data.success && data.monedas) {
-                badge.textContent = 'Tasa Oficial';
-                badge.className = 'status success';
+        function setCalcMode(mode) {
+            calcMode = mode;
+            document.getElementById('tab-usd').classList.toggle('active', mode === 'usd');
+            document.getElementById('tab-eur').classList.toggle('active', mode === 'eur');
+            document.getElementById('calc-from').classList.toggle('euro', mode === 'eur');
+            document.getElementById('calc-to').classList.toggle('euro', mode === 'eur');
+            document.getElementById('calc-from-badge').classList.toggle('euro', mode === 'eur');
+            document.getElementById('calc-from-input').value = '';
+            convert();
+        }
 
-                if (data.monedas.dolar) {
-                    usdEl.textContent = data.monedas.dolar + ' Bs';
-                } else {
-                    usdEl.textContent = 'No disponible';
-                }
+        function convert() {
+            const input = document.getElementById('calc-from-input');
+            const val = parseFloat((input.value || '0').replace(',', '.'));
+            if (!val || isNaN(val)) {
+                document.getElementById('calc-to-value').innerHTML = '<span class="result-empty">—</span>';
+                return;
+            }
+            let result, unit, label, fromLabel, fromBadge;
 
-                if (data.monedas.euro) {
-                    eurEl.textContent = data.monedas.euro + ' Bs';
-                } else {
-                    eurEl.textContent = 'No disponible';
-                }
-
-                if (data.ultima_actualizacion) {
-                    fechaEl.textContent = 'Fuente: ' + data.ultima_actualizacion;
+            if (calcMode === 'usd') {
+                if (tasas.usd) {
+                    const usd = val / tasas.usd;
+                    result = usd.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    unit = 'USD';
+                    label = val.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' Bs → USD';
+                    fromLabel = 'Bs';
+                    fromBadge = 'Bs';
                 }
             } else {
-                badge.textContent = 'Sin datos';
-                badge.className = 'status offline';
-                usdEl.textContent = '—';
-                eurEl.textContent = '—';
-                fechaEl.textContent = 'Reintentando en 30s...';
-                setTimeout(consultarTasa, 30000);
+                if (tasas.eur) {
+                    const eur = val / tasas.eur;
+                    result = eur.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    unit = 'EUR';
+                    label = val.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' Bs → EUR';
+                    fromLabel = 'Bs';
+                    fromBadge = 'Bs';
+                }
+            }
+
+            if (result) {
+                document.getElementById('calc-to-label').textContent = label;
+                document.getElementById('calc-to-value').textContent = result;
+                document.getElementById('calc-to-unit').textContent = unit;
+                document.getElementById('calc-from-label').textContent = fromLabel;
+                document.getElementById('calc-from-badge').textContent = fromBadge;
+            } else {
+                document.getElementById('calc-to-value').innerHTML = '<span class="result-empty">Sin tasa</span>';
             }
         }
 
+        function updateUI(data) {
+            const badge = document.getElementById('badge');
+            const badgeIcon = document.getElementById('badge-icon');
+            const badgeText = document.getElementById('badge-text');
+
+            if (data.success && data.monedas) {
+                badge.className = 'badge success';
+                badgeIcon.innerHTML = '';
+                badgeText.textContent = 'Tasa Oficial BCV';
+
+                if (data.monedas.dolar) {
+                    tasas.usd = parseFloat(data.monedas.dolar.replace(',', '.'));
+                    document.getElementById('usd-rate').textContent = data.monedas.dolar;
+                }
+                if (data.monedas.euro) {
+                    tasas.eur = parseFloat(data.monedas.euro.replace(',', '.'));
+                    document.getElementById('eur-rate').textContent = data.monedas.euro;
+                }
+
+                if (data.ultima_actualizacion) {
+                    const fechaTexto = data.ultima_actualizacion
+                        .replace(/BCV.*\|\s*/, '')
+                        .replace(/Fecha valor:\s*/i, '')
+                        .trim();
+                    document.getElementById('fecha-val').textContent = fechaTexto;
+                }
+
+                convert();
+            } else {
+                badge.className = 'badge error';
+                badgeIcon.innerHTML = '';
+                badgeText.textContent = 'Sin datos';
+                document.getElementById('usd-rate').textContent = '—';
+                document.getElementById('eur-rate').textContent = '—';
+                scheduleRetry(30000);
+            }
+        }
+
+        function scheduleRetry(ms) {
+            if (pollTimer) clearTimeout(pollTimer);
+            pollTimer = setTimeout(consultarTasa, ms);
+        }
+
         async function consultarTasa() {
+            const badge = document.getElementById('badge');
+            const badgeIcon = document.getElementById('badge-icon');
+            badge.className = 'badge loading';
+            badgeIcon.innerHTML = '<span class="spinner"></span>';
+            document.getElementById('badge-text').textContent = 'Actualizando...';
+
             try {
                 const response = await fetch('/api/consulta?nocache=' + Date.now());
                 if (!response.ok) throw new Error('HTTP ' + response.status);
                 const data = await response.json();
                 updateUI(data);
+                scheduleRetry(5 * 60 * 1000);
             } catch (err) {
-                badge.textContent = 'Error de conexión';
-                badge.className = 'status offline';
-                usdEl.textContent = '—';
-                eurEl.textContent = '—';
-                fechaEl.textContent = 'Reintentando en 30s...';
-                setTimeout(consultarTasa, 30000);
+                badge.className = 'badge error';
+                badgeIcon.innerHTML = '';
+                document.getElementById('badge-text').textContent = 'Error de conexión';
+                scheduleRetry(30000);
             }
         }
 
-        setTimeout(consultarTasa, 500);
+        setTimeout(consultarTasa, 600);
     </script>
 </body>
 </html>

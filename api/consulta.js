@@ -37,18 +37,11 @@ async function fetchFromBCV() {
     }
   });
 
-  let fecha = null;
-  const $body = $('body');
-  const posibles = $body.find('.field-content, .date-display-single, [class*="fecha"]');
-  posibles.each((_, el) => {
-    const txt = $(el).text().trim();
-    if (txt.match(/\d{1,2}\s+\w+\s+\d{4}/)) { fecha = txt; return false; }
-  });
-  if (!fecha) {
-    const bodyText = $body.text();
-    const dateMatch = bodyText.match(/(\w+,\s+\d{1,2}\s+[а-яА-Я\w]+\s+\d{4})/i);
-    if (dateMatch) fecha = dateMatch[1];
-  }
+  const fechaEl = $('span.date-display-single, div.pull-right dinpro center').first();
+  const fecha = fechaEl.text().trim()
+    .replace(/Fecha\s*Valor:\s*/i, '')
+    .replace(/\s+/g, ' ')
+    .trim() || null;
 
   return {
     usd: tasas.USD || null,
