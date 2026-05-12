@@ -248,18 +248,14 @@
             if (which === 'bs') {
                 const bsVal = parseFloat(bsInput.value.replace(/\s/g, '').replace(/\./g, '').replace(',', '.'));
                 if (!isNaN(bsVal) && bsVal !== 0) {
-                    const result = bsVal / rate;
-                    divInput.value = fmtNum(result);
-                    bsInput.value = fmtNum(bsVal);
+                    divInput.value = fmtNum(bsVal / rate);
                 } else {
                     divInput.value = '';
                 }
             } else {
                 const divVal = parseFloat(divInput.value.replace(/\s/g, '').replace(/\./g, '').replace(',', '.'));
                 if (!isNaN(divVal) && divVal !== 0) {
-                    const result = divVal * rate;
-                    bsInput.value = fmtNum(result);
-                    divInput.value = fmtNum(divVal);
+                    bsInput.value = fmtNum(divVal * rate);
                 } else {
                     bsInput.value = '';
                 }
