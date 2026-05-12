@@ -311,8 +311,8 @@
     <div class="card calc-card">
         <h3>Conversor</h3>
         <div class="calc-direction-tabs">
-            <button class="calc-dir-tab active" id="dir-ves-to" onclick="setCalcDir('ves-to')">VES → Divisa</button>
-            <button class="calc-dir-tab" id="dir-div-to" onclick="setCalcDir('div-to')">Divisa → VES</button>
+            <button class="calc-dir-tab active" id="dir-ves-to" onclick="setCalcDir('ves-to')">VES → <span id="calc-dir1-label">USD</span></button>
+            <button class="calc-dir-tab" id="dir-div-to" onclick="setCalcDir('div-to')"><span id="calc-dir2-label">USD</span> → VES</button>
         </div>
         <div id="calc-from" class="calc-input-wrap">
             <label id="calc-from-label">Bs</label>
@@ -354,6 +354,8 @@
             document.getElementById('main-rate').className = 'rate-value ' + data.color;
             const rate = allRates[selectedCurrency];
             document.getElementById('main-rate').textContent = rate ? rate : '—';
+            document.getElementById('calc-dir1-label').textContent = selectedCurrency;
+            document.getElementById('calc-dir2-label').textContent = selectedCurrency;
             convert();
         }
 
@@ -386,7 +388,7 @@
             } else {
                 result = val * rate;
                 unit = 'Bs';
-                label = val + ' ' + selectedCurrency + ' → Bs';
+                label = val.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ' + selectedCurrency + ' → Bs';
                 fromLabel = selectedCurrency;
                 fromBadge = selectedCurrency;
             }
