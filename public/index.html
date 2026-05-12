@@ -185,14 +185,14 @@
             <div class="calc-field">
                 <label id="label-div">Dólares</label>
                 <div class="calc-input-wrap" id="wrap-div">
-                    <input type="number" id="input-div" placeholder="0,00" inputmode="decimal" oninput="onInputChange('div')" />
+                    <input type="text" id="input-div" placeholder="0,00" inputmode="numeric" oninput="onInputChange('div')" />
                     <span class="currency-badge" id="badge-div">USD</span>
                 </div>
             </div>
             <div class="calc-field">
                 <label>Bolívares</label>
                 <div class="calc-input-wrap" id="wrap-bs">
-                    <input type="number" id="input-bs" placeholder="0,00" inputmode="decimal" oninput="onInputChange('bs')" />
+                    <input type="text" id="input-bs" placeholder="0,00" inputmode="numeric" oninput="onInputChange('bs')" />
                     <span class="currency-badge" id="badge-bs">Bs</span>
                 </div>
             </div>
@@ -205,8 +205,7 @@
         let allRates = { USD: null, EUR: null };
         let allRatesDisplay = { USD: null, EUR: null };
         let selectedCurrency = 'USD';
-        let lastChanged = 'bs';
-        let converting = false;
+        let activeField = null;
         let pollTimer = null;
 
         function toggleTheme() {
@@ -229,38 +228,42 @@
             document.getElementById('wrap-div').className = 'calc-input-wrap' + (isEuro ? ' euro' : '');
             document.getElementById('input-bs').value = '';
             document.getElementById('input-div').value = '';
-            lastChanged = 'bs';
+            activeField = null;
+        }
+
+        function fmtNum(val) {
+            const parts = val.toFixed(2).split('.');
+            parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+            return parts.join(',');
         }
 
         function onInputChange(which) {
-            lastChanged = which;
-            doConvert();
-        }
-
-        function doConvert() {
+            activeField = which;
             const rate = allRates[selectedCurrency];
-            if (!rate || converting) return;
-            converting = true;
+            if (!rate) return;
 
-            if (lastChanged === 'bs') {
-                const bsVal = parseFloat(document.getElementById('input-bs').value);
+            const bsInput = document.getElementById('input-bs');
+            const divInput = document.getElementById('input-div');
+
+            if (which === 'bs') {
+                const bsVal = parseFloat(bsInput.value.replace(/\s/g, '').replace(/\./g, '').replace(',', '.'));
                 if (!isNaN(bsVal) && bsVal !== 0) {
-                    const result = (bsVal / rate).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                    document.getElementById('input-div').value = result;
+                    const result = bsVal / rate;
+                    divInput.value = fmtNum(result);
+                    bsInput.value = fmtNum(bsVal);
                 } else {
-                    document.getElementById('input-div').value = '';
+                    divInput.value = '';
                 }
             } else {
-                const divVal = parseFloat(document.getElementById('input-div').value);
+                const divVal = parseFloat(divInput.value.replace(/\s/g, '').replace(/\./g, '').replace(',', '.'));
                 if (!isNaN(divVal) && divVal !== 0) {
-                    const result = (divVal * rate).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                    document.getElementById('input-bs').value = result;
+                    const result = divVal * rate;
+                    bsInput.value = fmtNum(result);
+                    divInput.value = fmtNum(divVal);
                 } else {
-                    document.getElementById('input-bs').value = '';
+                    bsInput.value = '';
                 }
             }
-
-            converting = false;
         }
 
         function updateUI(data) {
