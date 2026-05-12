@@ -217,6 +217,10 @@
             document.body.dataset.theme = isDark ? '' : 'dark';
             localStorage.setItem('theme', isDark ? 'light' : 'dark');
         }
+            const isDark = document.body.dataset.theme === 'dark';
+            document.body.dataset.theme = isDark ? '' : 'dark';
+            localStorage.setItem('theme', isDark ? 'light' : 'dark');
+        }
 
         function onCurrencyChange() {
             selectedCurrency = document.getElementById('currencySelect').value;
@@ -275,7 +279,9 @@
                 Object.keys(data.monedas).forEach(k => {
                     if (data.monedas[k]) {
                         allRatesDisplay[k] = data.monedas[k];
-                        allRates[k] = parseFloat(data.monedas[k].replace(',', '.'));
+                        if (data.tasas && data.tasas[k]) {
+                            allRates[k] = data.tasas[k];
+                        }
                     }
                 });
                 onCurrencyChange();

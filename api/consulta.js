@@ -98,6 +98,10 @@ module.exports = async (req, res) => {
         USD: formatRate(resultado.usd),
         EUR: resultado.eur && resultado.eur > 0 ? formatRate(resultado.eur) : null,
       },
+      tasas: {
+        USD: resultado.usd,
+        EUR: resultado.eur && resultado.eur > 0 ? resultado.eur : null,
+      },
       ultima_actualizacion: fuente + (resultado.fecha ? ' | Fecha valor: ' + resultado.fecha : ' | ' + ahora),
     });
   }
