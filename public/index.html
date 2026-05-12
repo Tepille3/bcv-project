@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Monitor BCV</title>
+    <meta name="description" content="Tasa Oficial BCV — Conversor de Divisas Venezuela">
+    <meta name="theme-color" content="#004b93">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/icon-192.svg">
     <style>
         :root {
             --blue: #004b93;
@@ -315,6 +319,10 @@
             document.body.dataset.theme = localStorage.getItem('theme') === 'light' ? '' : 'dark';
         })();
         setTimeout(consultarTasa, 600);
+
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js').catch(() => {});
+        }
     </script>
 </body>
 </html>
