@@ -275,17 +275,17 @@
         <h3>Conversor</h3>
         <div class="calc-row">
             <div class="calc-field">
-                <label>Bolívares</label>
-                <div class="calc-input-wrap" id="wrap-bs">
-                    <input type="number" id="input-bs" placeholder="0,00" inputmode="decimal" oninput="bsChanged = true; convert()" />
-                    <span class="currency-badge" id="badge-bs">Bs</span>
-                </div>
-            </div>
-            <div class="calc-field">
                 <label id="label-div">Dólares</label>
                 <div class="calc-input-wrap" id="wrap-div">
                     <input type="number" id="input-div" placeholder="0,00" inputmode="decimal" oninput="bsChanged = false; convert()" />
                     <span class="currency-badge" id="badge-div">USD</span>
+                </div>
+            </div>
+            <div class="calc-field">
+                <label>Bolívares</label>
+                <div class="calc-input-wrap" id="wrap-bs">
+                    <input type="number" id="input-bs" placeholder="0,00" inputmode="decimal" oninput="bsChanged = true; convert()" />
+                    <span class="currency-badge" id="badge-bs">Bs</span>
                 </div>
             </div>
         </div>
@@ -295,6 +295,7 @@
 
     <script>
         let allRates = { USD: null, EUR: null };
+        let allRatesDisplay = { USD: null, EUR: null };
         let selectedCurrency = 'USD';
         let bsChanged = true;
         let pollTimer = null;
@@ -312,7 +313,7 @@
             document.getElementById('rate-code').textContent = selectedCurrency;
             document.getElementById('rate-unit-label').textContent = selectedCurrency;
             document.getElementById('main-rate').className = 'rate-value ' + (isEuro ? 'euro-color' : '');
-            document.getElementById('main-rate').textContent = allRates[selectedCurrency] ? allRates[selectedCurrency] : '—';
+            document.getElementById('main-rate').textContent = allRatesDisplay[selectedCurrency] || '—';
             document.getElementById('label-div').textContent = isEuro ? 'Euros' : 'Dólares';
             document.getElementById('badge-div').textContent = selectedCurrency;
             document.getElementById('badge-div').className = 'currency-badge ' + (isEuro ? 'euro' : '');
@@ -320,7 +321,6 @@
             document.getElementById('input-bs').value = '';
             document.getElementById('input-div').value = '';
             bsChanged = true;
-            convert();
         }
 
         function convert() {
@@ -328,14 +328,16 @@
             if (!rate) return;
 
             if (bsChanged) {
-                const bs = parseFloat(document.getElementById('input-bs').value || '0');
+                const bsRaw = document.getElementById('input-bs').value.replace(/\s/g, '').replace(',', '.');
+                const bs = parseFloat(bsRaw);
                 if (bs && !isNaN(bs)) {
                     document.getElementById('input-div').value = (bs / rate).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                 } else {
                     document.getElementById('input-div').value = '';
                 }
             } else {
-                const div = parseFloat(document.getElementById('input-div').value || '0');
+                const divRaw = document.getElementById('input-div').value.replace(/\s/g, '').replace(',', '.');
+                const div = parseFloat(divRaw);
                 if (div && !isNaN(div)) {
                     document.getElementById('input-bs').value = (div * rate).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                 } else {
@@ -351,7 +353,10 @@
                 badge.className = 'badge success';
                 document.getElementById('badge-text').textContent = 'Tasa Oficial BCV';
                 Object.keys(data.monedas).forEach(k => {
-                    if (data.monedas[k]) allRates[k] = data.monedas[k];
+                    if (data.monedas[k]) {
+                        allRatesDisplay[k] = data.monedas[k];
+                        allRates[k] = parseFloat(data.monedas[k].replace(',', '.'));
+                    }
                 });
                 onCurrencyChange();
             } else {
