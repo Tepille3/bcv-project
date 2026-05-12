@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Monitor de Divisas</title>
+    <style>
+        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: #f0f2f5; }
+        .card { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); text-align: center; }
+        .precio { font-size: 2rem; color: #004b93; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>Tasa Oficial BCV</h2>
+        <p>Dólar: <span id="usd" class="precio">Cargando...</span></p>
+        <p>Euro: <span id="eur" class="precio">Cargando...</span></p>
+        <small id="fecha"></small>
+    </div>
+
+    <script>
+        fetch('/api/consulta')
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('usd').innerText = data.monedas.dolar + " Bs";
+                document.getElementById('eur').innerText = data.monedas.euro + " Bs";
+                document.getElementById('fecha').innerText = "Act: " + data.ultima_actualizacion;
+            });
+    </script>
+</body>
+</html>
