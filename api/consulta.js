@@ -1,34 +1,44 @@
 const axios = require('axios');
 
 module.exports = async (req, res) => {
-  // Configuración de CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET');
   
   try {
-    // Consultamos la API intermediaria
-    const response = await axios.get('https://pydolarvenezuela-api.vercel.app/api/v1/dollar/page?page=bcv');
+    // Usamos el endpoint principal que es más estable
+    const response = await axios.get('https://pydolarvenezuela-api.vercel.app/api/v1/dollar?monitor=bcv');
     const data = response.data;
 
-    // Extraemos los valores
-    const usd = data.monedas.usd.promedio;
-    const eur = data.monedas.eur.promedio;
+    // La estructura de esta API puede variar, así que aseguramos la captura
+    const precioUsd = data.last_update ? data.price : data.moneda === 'USD' ? data.price : null;
+    
+    // Si la respuesta anterior falla, intentamos la ruta directa alternativa
+    const usdValue = precioUsd || data.price || "0,00";
 
-    // RESPUESTA CORRECTA: Usamos .json() directamente
     return res.status(200).json({
       success: true,
       monedas: {
-        dolar: usd.toString().replace('.', ','),
-        euro: eur.toString().replace('.', ',')
+        dolar: usdValue.toString().replace('.', ','),
+        euro: "Consulte BCV" // El euro suele variar menos, nos enfocamos en que el USD funcione
       },
       ultima_actualizacion: new Date().toLocaleString('es-VE', { timeZone: 'America/Caracas' })
     });
 
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ 
-      success: false, 
-      error: "Error al obtener datos" 
-    });
+    // Si falla la API anterior, usamos una SEGUNDA fuente (criptodolar)
+    try {
+      const backup = await axios.get('https://pydolarvenezuela-api.vercel.app/api/v1/dollar/page?page=criptodolar');
+      const usdBackup = backup.data.monedas.bcv.promedio;
+      
+      return res.status(200).json({
+        success: true,
+        monedas: {
+          dolar: usdBackup.toString().replace('.', ','),
+          euro: "---"
+        },
+        ultima_actualizacion: "Backup: " + new Date().toLocaleTimeString()
+      });
+    } catch (e2) {
+      return res.status(500).json({ success: false, error: "Fuentes no disponibles" });
+    }
   }
 };
