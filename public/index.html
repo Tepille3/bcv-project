@@ -7,19 +7,32 @@
     <style>
         :root {
             --blue: #004b93;
-            --blue-light: #e8f0fe;
+            --blue-light: #1a3a6b;
             --orange: #b83b0e;
-            --orange-light: #fde8e0;
-            --green: #155724;
-            --green-light: #d4edda;
-            --red: #721c24;
-            --red-light: #f8d7da;
-            --yellow-light: #fff3cd;
-            --yellow-text: #856404;
+            --orange-light: #6b2208;
+            --green: #2e9e5a;
+            --green-light: #1a5e3a;
+            --red: #c0392b;
             --bg: #f0f2f5;
-            --card-shadow: 0 4px 24px rgba(0,0,0,0.08);
-            --radius: 16px;
+            --card-bg: #ffffff;
+            --text: #1a1a2e;
+            --text-muted: #6b7280;
+            --input-bg: #f3f4f6;
+            --border: #e5e7eb;
         }
+
+        [data-theme="dark"] {
+            --bg: #0f1117;
+            --card-bg: #1a1d2e;
+            --text: #e8eaf0;
+            --text-muted: #8b95a8;
+            --input-bg: #252a3d;
+            --border: #2d3348;
+            --blue-light: #1e4080;
+            --orange-light: #7a2e12;
+            --green-light: #1e5e38;
+        }
+
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
@@ -30,32 +43,78 @@
             flex-direction: column;
             align-items: center;
             padding: 20px 16px 40px;
-            color: #333;
+            color: var(--text);
+            transition: background 0.3s, color 0.3s;
         }
 
-        .app-header {
-            text-align: center;
-            margin-bottom: 24px;
+        .top-bar {
+            width: 100%;
+            max-width: 420px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
         }
-        .app-header h1 {
-            font-size: 1.5rem;
+
+        .app-title {
+            display: flex;
+            flex-direction: column;
+        }
+        .app-title h1 {
+            font-size: 1.3rem;
             font-weight: 700;
             color: var(--blue);
-            letter-spacing: -0.5px;
+            letter-spacing: -0.3px;
         }
-        .app-header p {
-            font-size: 0.85rem;
-            color: #888;
-            margin-top: 4px;
+        .app-title span {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .theme-toggle {
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            width: 48px;
+            height: 28px;
+            cursor: pointer;
+            position: relative;
+            transition: background 0.3s;
+            flex-shrink: 0;
+        }
+        .theme-toggle::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: var(--blue);
+            transition: transform 0.3s;
+        }
+        [data-theme="dark"] .theme-toggle::after {
+            transform: translateX(20px);
+            background: #f0c040;
         }
 
         .card {
-            background: white;
-            border-radius: var(--radius);
-            box-shadow: var(--card-shadow);
+            background: var(--card-bg);
+            border-radius: 20px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.06);
             padding: 24px;
             width: 100%;
             max-width: 420px;
+            margin-bottom: 20px;
+            transition: background 0.3s, box-shadow 0.3s;
+        }
+        [data-theme="dark"] .card { box-shadow: 0 4px 24px rgba(0,0,0,0.3); }
+
+        .card-top {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
             margin-bottom: 20px;
         }
 
@@ -63,92 +122,111 @@
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            padding: 4px 14px;
+            padding: 4px 12px;
             border-radius: 20px;
-            font-size: 0.78rem;
+            font-size: 0.72rem;
             font-weight: 600;
-            margin-bottom: 16px;
         }
-        .badge.loading { background: var(--yellow-light); color: var(--yellow-text); }
-        .badge.success { background: var(--green-light); color: var(--green); }
-        .badge.error  { background: var(--red-light); color: var(--red); }
+        .badge.loading { background: rgba(255,193,7,0.15); color: #d4a000; }
+        .badge.success { background: rgba(46,158,90,0.15); color: var(--green); }
+        .badge.error  { background: rgba(192,57,43,0.15); color: var(--red); }
         .badge::before {
             content: '';
-            width: 8px;
-            height: 8px;
+            width: 7px;
+            height: 7px;
             border-radius: 50%;
             background: currentColor;
         }
         .badge.loading::before { animation: pulse 1.2s infinite; }
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
 
-        .rates-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-            margin-bottom: 20px;
+        .currency-select-wrap {
+            position: relative;
+        }
+        .currency-select {
+            appearance: none;
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 7px 32px 7px 12px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--text);
+            cursor: pointer;
+            outline: none;
+            font-family: inherit;
+            transition: background 0.3s, border-color 0.3s;
+            min-width: 100px;
+        }
+        .currency-select:focus { border-color: var(--blue); }
+        .currency-select option { font-weight: 700; }
+        .currency-select-wrap::after {
+            content: '▼';
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.55rem;
+            color: var(--text-muted);
+            pointer-events: none;
         }
 
-        .rate-box {
-            background: var(--blue-light);
-            border-radius: 12px;
-            padding: 16px 12px;
+        .rate-display {
             text-align: center;
+            margin-bottom: 20px;
         }
-        .rate-box.euro { background: var(--orange-light); }
-        .rate-box .currency-icon {
-            font-size: 1.6rem;
-            margin-bottom: 4px;
+        .rate-currency-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 6px;
         }
-        .rate-box .currency-name {
-            font-size: 0.75rem;
-            color: #666;
-            font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        .rate-box .currency-code {
-            font-size: 0.7rem;
-            color: #999;
-            font-weight: 600;
-        }
-        .rate-box .rate-value {
-            font-size: 1.6rem;
+        .rate-flag { font-size: 2rem; }
+        .rate-code {
+            font-size: 1.1rem;
             font-weight: 800;
-            color: var(--blue);
-            margin: 4px 0;
-            line-height: 1.1;
+            color: var(--text);
         }
-        .rate-box.euro .rate-value { color: var(--orange); }
-        .rate-box .rate-unit {
-            font-size: 0.7rem;
-            color: #888;
+        .rate-value {
+            font-size: 2.8rem;
+            font-weight: 900;
+            color: var(--blue);
+            line-height: 1;
+            margin-bottom: 4px;
+            transition: color 0.3s;
+        }
+        .rate-value.euro-color { color: var(--orange); }
+        .rate-value.cny-color { color: #c0392b; }
+        .rate-value.try-color { color: #8e44ad; }
+        .rate-value.rub-color { color: #27ae60; }
+        .rate-unit {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-weight: 500;
         }
 
         .fecha-valor {
-            background: #f8f9fa;
-            border-radius: 8px;
+            background: var(--input-bg);
+            border-radius: 10px;
             padding: 10px 14px;
-            font-size: 0.82rem;
-            color: #555;
+            font-size: 0.8rem;
+            color: var(--text-muted);
             display: flex;
             align-items: center;
             gap: 8px;
+            transition: background 0.3s;
         }
-        .fecha-valor .fv-icon { font-size: 1rem; }
         .fecha-valor strong { color: var(--blue); }
 
-        .calc-card {
-            width: 100%;
-            max-width: 420px;
-        }
         .calc-card h3 {
-            font-size: 1rem;
+            font-size: 0.95rem;
             font-weight: 700;
             color: var(--blue);
             margin-bottom: 16px;
             text-align: center;
         }
+
         .calc-tabs {
             display: flex;
             gap: 8px;
@@ -159,10 +237,10 @@
             padding: 10px;
             border: 2px solid var(--blue);
             border-radius: 10px;
-            background: white;
+            background: transparent;
             color: var(--blue);
             font-weight: 600;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             cursor: pointer;
             transition: all 0.2s;
         }
@@ -176,20 +254,20 @@
         .calc-input-wrap {
             display: flex;
             align-items: center;
-            background: #f8f9fa;
+            background: var(--input-bg);
             border-radius: 12px;
             padding: 4px 14px;
             margin-bottom: 12px;
             border: 2px solid transparent;
-            transition: border-color 0.2s;
+            transition: border-color 0.2s, background 0.3s;
         }
         .calc-input-wrap:focus-within { border-color: var(--blue); }
         .calc-input-wrap:focus-within.euro { border-color: var(--orange); }
         .calc-input-wrap label {
-            font-size: 0.75rem;
-            font-weight: 600;
-            color: #999;
-            min-width: 40px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            min-width: 36px;
         }
         .calc-input-wrap input {
             flex: 1;
@@ -197,7 +275,7 @@
             background: transparent;
             font-size: 1.1rem;
             font-weight: 700;
-            color: #333;
+            color: var(--text);
             padding: 12px 8px;
             outline: none;
             font-family: inherit;
@@ -207,7 +285,7 @@
         .calc-input-wrap input::-webkit-outer-spin-button,
         .calc-input-wrap input::-webkit-inner-spin-button { -webkit-appearance: none; }
         .calc-input-wrap .currency-badge {
-            font-size: 0.8rem;
+            font-size: 0.72rem;
             font-weight: 700;
             padding: 3px 8px;
             border-radius: 6px;
@@ -217,15 +295,15 @@
         .calc-input-wrap .currency-badge.euro { background: var(--orange); }
 
         .calc-result {
-            background: var(--blue-light);
+            background: var(--input-bg);
             border-radius: 12px;
             padding: 16px;
             text-align: center;
+            transition: background 0.3s;
         }
-        .calc-result.euro { background: var(--orange-light); }
         .calc-result .result-label {
-            font-size: 0.75rem;
-            color: #888;
+            font-size: 0.72rem;
+            color: var(--text-muted);
             font-weight: 500;
             margin-bottom: 4px;
         }
@@ -234,20 +312,19 @@
             font-weight: 800;
             color: var(--blue);
         }
-        .calc-result.euro .result-value { color: var(--orange); }
         .calc-result .result-unit {
-            font-size: 0.8rem;
-            color: #888;
+            font-size: 0.75rem;
+            color: var(--text-muted);
             font-weight: 600;
         }
         .calc-result .result-empty {
             font-size: 0.85rem;
-            color: #aaa;
+            color: var(--text-muted);
         }
 
         .spinner {
-            width: 16px;
-            height: 16px;
+            width: 14px;
+            height: 14px;
             border: 2px solid rgba(0,0,0,0.1);
             border-top-color: var(--blue);
             border-radius: 50%;
@@ -259,52 +336,58 @@
         .footer {
             margin-top: auto;
             padding-top: 20px;
-            font-size: 0.75rem;
-            color: #bbb;
+            font-size: 0.72rem;
+            color: var(--text-muted);
             text-align: center;
         }
     </style>
 </head>
-<body>
-    <header class="app-header">
-        <h1>Monitor BCV</h1>
-        <p>Tasa Oficial — Banco Central de Venezuela</p>
-    </header>
+<body data-theme="dark">
+    <div class="top-bar">
+        <div class="app-title">
+            <h1>Monitor BCV</h1>
+            <span>Banco Central de Venezuela</span>
+        </div>
+        <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" aria-label="Cambiar tema"></button>
+    </div>
 
     <div class="card">
-        <div id="badge" class="badge loading">
-            <span id="badge-icon"></span>
-            <span id="badge-text">Conectando...</span>
-        </div>
-
-        <div class="rates-grid">
-            <div class="rate-box" id="rate-usd">
-                <div class="currency-icon">💵</div>
-                <div class="currency-name">Dólar</div>
-                <div class="currency-code">USD</div>
-                <div class="rate-value" id="usd-rate">...</div>
-                <div class="rate-unit">Bs por USD</div>
+        <div class="card-top">
+            <div id="badge" class="badge loading">
+                <span id="badge-icon"></span>
+                <span id="badge-text">Conectando...</span>
             </div>
-            <div class="rate-box euro" id="rate-eur">
-                <div class="currency-icon">💶</div>
-                <div class="currency-name">Euro</div>
-                <div class="currency-code">EUR</div>
-                <div class="rate-value" id="eur-rate">...</div>
-                <div class="rate-unit">Bs por EUR</div>
+            <div class="currency-select-wrap">
+                <select class="currency-select" id="currencySelect" onchange="onCurrencyChange()">
+                    <option value="USD">USD — Dólar</option>
+                    <option value="EUR">EUR — Euro</option>
+                    <option value="CNY">CNY — Yuan</option>
+                    <option value="TRY">TRY — Lira</option>
+                    <option value="RUB">RUB — Rublo</option>
+                </select>
             </div>
         </div>
 
-        <div class="fecha-valor" id="fecha-box">
-            <span class="fv-icon">📅</span>
+        <div class="rate-display">
+            <div class="rate-currency-row">
+                <span class="rate-flag" id="rate-flag">💵</span>
+                <span class="rate-code" id="rate-code">USD</span>
+            </div>
+            <div class="rate-value" id="main-rate">...</div>
+            <div class="rate-unit">Bs por <span id="rate-unit-label">USD</span></div>
+        </div>
+
+        <div class="fecha-valor">
+            <span>📅</span>
             <span>Fecha Valor: <strong id="fecha-val">—</strong></span>
         </div>
     </div>
 
     <div class="card calc-card">
-        <h3>🔄 Conversor de Divisas</h3>
+        <h3>Conversor VES → <span id="calc-title-currency">USD</span></h3>
         <div class="calc-tabs">
-            <button class="calc-tab active" id="tab-usd" onclick="setCalcMode('usd')">VES ↔ USD</button>
-            <button class="calc-tab euro-tab" id="tab-eur" onclick="setCalcMode('eur')">VES ↔ EUR</button>
+            <button class="calc-tab active" id="tab-usd" onclick="setCalcMode('usd')">VES → USD</button>
+            <button class="calc-tab euro-tab" id="tab-eur" onclick="setCalcMode('eur')">VES → EUR</button>
         </div>
         <div id="calc-from" class="calc-input-wrap">
             <label id="calc-from-label">Bs</label>
@@ -318,14 +401,50 @@
         </div>
     </div>
 
-    <div class="footer">
-        Fuente: bcv.org.ve — Actualización automática cada 5 min
-    </div>
+    <div class="footer">Fuente: bcv.org.ve · Actualización automática</div>
 
     <script>
-        let tasas = { usd: null, eur: null };
+        const CURRENCY_DATA = {
+            USD: { flag: '💵', color: '', unit: 'USD' },
+            EUR: { flag: '💶', color: 'euro-color', unit: 'EUR' },
+            CNY: { flag: '🇨🇳', color: 'cny-color', unit: 'CNY' },
+            TRY: { flag: '🇹🇷', color: 'try-color', unit: 'TRY' },
+            RUB: { flag: '🇷🇺', color: 'rub-color', unit: 'RUB' },
+        };
+
+        let allRates = { USD: null, EUR: null, CNY: null, TRY: null, RUB: null };
+        let selectedCurrency = 'USD';
         let calcMode = 'usd';
         let pollTimer = null;
+
+        function toggleTheme() {
+            const isDark = document.body.dataset.theme === 'dark';
+            document.body.dataset.theme = isDark ? '' : 'dark';
+            localStorage.setItem('theme', isDark ? 'light' : 'dark');
+        }
+
+        function onCurrencyChange() {
+            selectedCurrency = document.getElementById('currencySelect').value;
+            updateRateDisplay();
+            convert();
+        }
+
+        function updateRateDisplay() {
+            const data = CURRENCY_DATA[selectedCurrency];
+            document.getElementById('rate-flag').textContent = data.flag;
+            document.getElementById('rate-code').textContent = selectedCurrency;
+            document.getElementById('rate-unit-label').textContent = data.unit;
+
+            const mainRate = document.getElementById('main-rate');
+            mainRate.className = 'rate-value ' + data.color;
+
+            const rate = allRates[selectedCurrency];
+            if (rate) {
+                mainRate.textContent = rate;
+            } else {
+                mainRate.textContent = '—';
+            }
+        }
 
         function setCalcMode(mode) {
             calcMode = mode;
@@ -335,47 +454,31 @@
             document.getElementById('calc-to').classList.toggle('euro', mode === 'eur');
             document.getElementById('calc-from-badge').classList.toggle('euro', mode === 'eur');
             document.getElementById('calc-from-input').value = '';
+            document.getElementById('calc-title-currency').textContent = mode === 'usd' ? 'USD' : 'EUR';
             convert();
         }
 
         function convert() {
             const input = document.getElementById('calc-from-input');
-            const val = parseFloat((input.value || '0').replace(',', '.'));
+            const val = parseFloat(input.value || '0');
             if (!val || isNaN(val)) {
                 document.getElementById('calc-to-value').innerHTML = '<span class="result-empty">—</span>';
                 return;
             }
-            let result, unit, label, fromLabel, fromBadge;
-
-            if (calcMode === 'usd') {
-                if (tasas.usd) {
-                    const usd = val / tasas.usd;
-                    result = usd.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                    unit = 'USD';
-                    label = val.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' Bs → USD';
-                    fromLabel = 'Bs';
-                    fromBadge = 'Bs';
-                }
-            } else {
-                if (tasas.eur) {
-                    const eur = val / tasas.eur;
-                    result = eur.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                    unit = 'EUR';
-                    label = val.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' Bs → EUR';
-                    fromLabel = 'Bs';
-                    fromBadge = 'Bs';
-                }
-            }
-
-            if (result) {
-                document.getElementById('calc-to-label').textContent = label;
-                document.getElementById('calc-to-value').textContent = result;
-                document.getElementById('calc-to-unit').textContent = unit;
-                document.getElementById('calc-from-label').textContent = fromLabel;
-                document.getElementById('calc-from-badge').textContent = fromBadge;
-            } else {
+            const rate = calcMode === 'usd' ? allRates.USD : allRates.EUR;
+            if (!rate) {
                 document.getElementById('calc-to-value').innerHTML = '<span class="result-empty">Sin tasa</span>';
+                return;
             }
+            const result = val / rate;
+            const unit = calcMode === 'usd' ? 'USD' : 'EUR';
+            document.getElementById('calc-to-label').textContent = val.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' Bs → ' + unit;
+            document.getElementById('calc-to-value').textContent = result.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            document.getElementById('calc-to-unit').textContent = unit;
+        }
+
+        function formatRate(val) {
+            return val.toFixed(2).replace('.', ',');
         }
 
         function updateUI(data) {
@@ -388,30 +491,20 @@
                 badgeIcon.innerHTML = '';
                 badgeText.textContent = 'Tasa Oficial BCV';
 
-                if (data.monedas.dolar) {
-                    tasas.usd = parseFloat(data.monedas.dolar.replace(',', '.'));
-                    document.getElementById('usd-rate').textContent = data.monedas.dolar;
-                }
-                if (data.monedas.euro) {
-                    tasas.eur = parseFloat(data.monedas.euro.replace(',', '.'));
-                    document.getElementById('eur-rate').textContent = data.monedas.euro;
-                }
+                Object.keys(data.monedas).forEach(key => {
+                    const val = data.monedas[key];
+                    if (val) {
+                        allRates[key] = parseFloat(val.replace(',', '.'));
+                    }
+                });
 
-                if (data.ultima_actualizacion) {
-                    const fechaTexto = data.ultima_actualizacion
-                        .replace(/BCV.*\|\s*/, '')
-                        .replace(/Fecha valor:\s*/i, '')
-                        .trim();
-                    document.getElementById('fecha-val').textContent = fechaTexto;
-                }
-
+                updateRateDisplay();
                 convert();
             } else {
                 badge.className = 'badge error';
                 badgeIcon.innerHTML = '';
                 badgeText.textContent = 'Sin datos';
-                document.getElementById('usd-rate').textContent = '—';
-                document.getElementById('eur-rate').textContent = '—';
+                document.getElementById('main-rate').textContent = '—';
                 scheduleRetry(30000);
             }
         }
@@ -433,6 +526,13 @@
                 if (!response.ok) throw new Error('HTTP ' + response.status);
                 const data = await response.json();
                 updateUI(data);
+                if (data.ultima_actualizacion) {
+                    const fechaTexto = data.ultima_actualizacion
+                        .replace(/BCV.*\|\s*/, '')
+                        .replace(/Fecha valor:\s*/i, '')
+                        .trim();
+                    document.getElementById('fecha-val').textContent = fechaTexto;
+                }
                 scheduleRetry(5 * 60 * 1000);
             } catch (err) {
                 badge.className = 'badge error';
@@ -441,6 +541,12 @@
                 scheduleRetry(30000);
             }
         }
+
+        (function initTheme() {
+            const saved = localStorage.getItem('theme');
+            if (saved === 'light') document.body.dataset.theme = '';
+            else document.body.dataset.theme = 'dark';
+        })();
 
         setTimeout(consultarTasa, 600);
     </script>

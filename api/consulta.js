@@ -33,7 +33,10 @@ async function fetchFromBCV() {
     if (match) {
       const codigo = match[1].toUpperCase();
       const valor = parseNumber(match[2]);
-      if (valor && valor > 0) tasas[codigo] = valor;
+      if (valor && valor > 0) {
+        if (codigo === 'TRY') tasas.try_ = valor;
+        else tasas[codigo.toLowerCase()] = valor;
+      }
     }
   });
 
@@ -44,8 +47,11 @@ async function fetchFromBCV() {
     .trim() || null;
 
   return {
-    usd: tasas.USD || null,
-    eur: tasas.EUR || null,
+    usd: tasas.usd || null,
+    eur: tasas.eur || null,
+    cny: tasas.cny || null,
+    try_: tasas.try_ || null,
+    rub: tasas.rub || null,
     fecha: fecha,
   };
 }
@@ -95,8 +101,11 @@ module.exports = async (req, res) => {
     return res.status(200).json({
       success: true,
       monedas: {
-        dolar: formatRate(resultado.usd),
-        euro: resultado.eur && resultado.eur > 0 ? formatRate(resultado.eur) : null,
+        USD: formatRate(resultado.usd),
+        EUR: resultado.eur && resultado.eur > 0 ? formatRate(resultado.eur) : null,
+        CNY: resultado.cny && resultado.cny > 0 ? formatRate(resultado.cny) : null,
+        TRY: resultado.try_ && resultado.try_ > 0 ? formatRate(resultado.try_) : null,
+        RUB: resultado.rub && resultado.rub > 0 ? formatRate(resultado.rub) : null,
       },
       ultima_actualizacion: fuente + (resultado.fecha ? ' | Fecha valor: ' + resultado.fecha : ' | ' + ahora),
     });
@@ -104,7 +113,7 @@ module.exports = async (req, res) => {
 
   return res.status(200).json({
     success: false,
-    monedas: { dolar: null, euro: null },
+    monedas: {},
     ultima_actualizacion: 'Sin datos',
   });
 };
