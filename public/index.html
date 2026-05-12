@@ -27,34 +27,32 @@
     </div>
 
     <script>
-        const badge = document.getElementById('badge');
-        const usdText = document.getElementById('usd');
-        const fechaText = document.getElementById('fecha');
-
         async function consultarTasa() {
+            const badge = document.getElementById('badge');
+            const usdText = document.getElementById('usd');
+            const fechaText = document.getElementById('fecha');
+
             try {
-                // Añadimos un timestamp para evitar que el navegador guarde el error en cache
-                const response = await fetch('/api/consulta?t=' + Date.now());
+                // El '?nocache=' + Date.now() obliga a Vercel a darnos data fresca
+                const response = await fetch('/api/consulta?nocache=' + Date.now());
                 const data = await response.json();
 
                 if (data.success) {
                     badge.innerText = "Conexión Exitosa";
                     badge.className = "status success";
                     usdText.innerText = data.monedas.dolar + " Bs";
-                    fechaText.innerText = "Última actualización: " + data.ultima_actualizacion;
-                    console.log("Datos recibidos:", data);
+                    fechaText.innerText = "Actualizado: " + data.ultima_actualizacion;
                 } else {
-                    throw new Error(data.error || "Error desconocido");
+                    throw new Error(data.error);
                 }
             } catch (err) {
-                badge.innerText = "Error de Conexión";
+                badge.innerText = "Error";
                 badge.className = "status error";
-                usdText.innerText = "---";
-                fechaText.innerText = "Motivo: " + err.message;
-                console.error("Error detallado:", err);
+                fechaText.innerText = "Reintentando...";
+                // Reintenta automáticamente en 5 segundos si falla
+                setTimeout(consultarTasa, 5000);
             }
         }
-
         consultarTasa();
     </script>
 </body>
