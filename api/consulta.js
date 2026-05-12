@@ -1,17 +1,21 @@
 const axios = require('axios');
 
 module.exports = async (req, res) => {
+  // Configuración de CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET');
   
   try {
-    // Usamos una API que ya tiene la data procesada
-    const { data } = await axios.get('https://pydolarvenezuela-api.vercel.app/api/v1/dollar/page?page=bcv');
+    // Consultamos la API intermediaria
+    const response = await axios.get('https://pydolarvenezuela-api.vercel.app/api/v1/dollar/page?page=bcv');
+    const data = response.data;
 
-    // Extraemos dólar y euro del formato que nos da esta API
+    // Extraemos los valores
     const usd = data.monedas.usd.promedio;
     const eur = data.monedas.eur.promedio;
 
-    res.status(200).json({
+    // RESPUESTA CORRECTA: Usamos .json() directamente
+    return res.status(200).json({
       success: true,
       monedas: {
         dolar: usd.toString().replace('.', ','),
@@ -19,10 +23,12 @@ module.exports = async (req, res) => {
       },
       ultima_actualizacion: new Date().toLocaleString('es-VE', { timeZone: 'America/Caracas' })
     });
+
   } catch (error) {
-    res.status(500).json({ 
+    console.error(error);
+    return res.status(500).json({ 
       success: false, 
-      error: "Error al obtener datos del puente" 
+      error: "Error al obtener datos" 
     });
   }
 };
