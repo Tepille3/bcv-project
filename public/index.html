@@ -18,19 +18,16 @@
             --input-bg: #f3f4f6;
             --border: #e5e7eb;
         }
-
         [data-theme="dark"] {
             --bg: #000000;
             --card-bg: #0d0d0d;
             --card-shadow: 0 2px 20px rgba(255,255,255,0.04);
             --text: #e8e8e8;
-            --text-muted: #555555;
-            --input-bg: #141414;
-            --border: #1e1e1e;
+            --text-muted: #444444;
+            --input-bg: #111111;
+            --border: #1c1c1c;
         }
-
         * { box-sizing: border-box; margin: 0; padding: 0; }
-
         body {
             font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
             background: var(--bg);
@@ -42,7 +39,6 @@
             color: var(--text);
             transition: background 0.2s, color 0.2s;
         }
-
         .top-bar {
             width: 100%;
             max-width: 420px;
@@ -51,61 +47,31 @@
             justify-content: space-between;
             margin-bottom: 20px;
         }
-
-        .app-title h1 { font-size: 1.3rem; font-weight: 700; color: var(--blue); letter-spacing: -0.3px; }
+        .app-title h1 { font-size: 1.3rem; font-weight: 700; color: var(--blue); }
         .app-title span { font-size: 0.72rem; color: var(--text-muted); margin-top: 2px; display: block; }
-
         .theme-toggle {
-            width: 44px;
-            height: 26px;
-            border-radius: 13px;
-            border: none;
-            cursor: pointer;
-            position: relative;
-            transition: background 0.2s;
-            background: var(--input-bg);
-            flex-shrink: 0;
+            width: 44px; height: 26px; border-radius: 13px; border: none;
+            cursor: pointer; position: relative; transition: background 0.2s;
+            background: var(--input-bg); flex-shrink: 0;
         }
         .theme-toggle::after {
-            content: '';
-            position: absolute;
-            top: 3px;
-            left: 3px;
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            background: #888;
-            transition: transform 0.2s, background 0.2s;
+            content: ''; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px;
+            border-radius: 50%; background: #888; transition: transform 0.2s, background 0.2s;
         }
         [data-theme="dark"] .theme-toggle { background: #1a1a2e; }
         [data-theme="dark"] .theme-toggle::after { transform: translateX(18px); background: #f0c040; }
 
         .card {
-            background: var(--card-bg);
-            border-radius: 18px;
-            box-shadow: var(--card-shadow);
-            padding: 22px;
-            width: 100%;
-            max-width: 420px;
-            margin-bottom: 16px;
+            background: var(--card-bg); border-radius: 18px; box-shadow: var(--card-shadow);
+            padding: 22px; width: 100%; max-width: 420px; margin-bottom: 16px;
             transition: background 0.2s, box-shadow 0.2s;
         }
-
         .card-top {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 18px;
+            display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px;
         }
-
         .badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 0.7rem;
-            font-weight: 600;
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 600;
         }
         .badge.loading { background: rgba(255,193,7,0.15); color: #c8a000; }
         .badge.success { background: rgba(46,158,90,0.12); color: var(--green); }
@@ -115,17 +81,9 @@
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
 
         .currency-select {
-            appearance: none;
-            background: var(--input-bg);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 6px 28px 6px 10px;
-            font-size: 0.8rem;
-            font-weight: 700;
-            color: var(--text);
-            cursor: pointer;
-            outline: none;
-            font-family: inherit;
+            appearance: none; background: var(--input-bg); border: 1px solid var(--border);
+            border-radius: 8px; padding: 6px 28px 6px 10px; font-size: 0.8rem; font-weight: 700;
+            color: var(--text); cursor: pointer; outline: none; font-family: inherit;
             transition: background 0.2s, border-color 0.2s;
         }
         .currency-select:focus { border-color: var(--blue); }
@@ -134,99 +92,51 @@
         .rate-display { text-align: center; margin-bottom: 16px; }
         .rate-currency-row { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 4px; }
         .rate-flag { font-size: 1.8rem; }
-        .rate-code { font-size: 1rem; font-weight: 800; color: var(--text); }
-        .rate-value {
-            font-size: 2.6rem;
-            font-weight: 900;
-            color: var(--blue);
-            line-height: 1;
-            margin-bottom: 2px;
-            transition: color 0.2s;
-        }
+        .rate-code { font-size: 1rem; font-weight: 800; }
+        .rate-value { font-size: 2.6rem; font-weight: 900; color: var(--blue); line-height: 1; margin-bottom: 2px; transition: color 0.2s; }
         .rate-value.euro-color { color: var(--orange); }
         .rate-unit { font-size: 0.75rem; color: var(--text-muted); font-weight: 500; }
 
         .fecha-valor {
-            background: var(--input-bg);
-            border-radius: 8px;
-            padding: 8px 12px;
-            font-size: 0.78rem;
-            color: var(--text-muted);
-            display: flex;
-            align-items: center;
-            gap: 7px;
+            background: var(--input-bg); border-radius: 8px; padding: 8px 12px;
+            font-size: 0.78rem; color: var(--text-muted); display: flex; align-items: center; gap: 7px;
             transition: background 0.2s;
         }
         .fecha-valor strong { color: var(--blue); }
 
-        .calc-card { padding: 22px; }
-        .calc-card h3 {
-            font-size: 0.9rem;
-            font-weight: 700;
-            color: var(--blue);
-            margin-bottom: 14px;
-            text-align: center;
-        }
+        .calc-card h3 { font-size: 0.9rem; font-weight: 700; color: var(--blue); margin-bottom: 14px; text-align: center; }
 
-        .calc-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
+        .calc-fields { display: flex; flex-direction: column; gap: 10px; }
 
         .calc-field { display: flex; flex-direction: column; gap: 4px; }
-        .calc-field label {
-            font-size: 0.68rem;
-            font-weight: 700;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
+        .calc-field label { font-size: 0.68rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+
         .calc-input-wrap {
-            display: flex;
-            align-items: center;
-            background: var(--input-bg);
-            border-radius: 10px;
-            padding: 4px 12px;
-            border: 2px solid transparent;
+            display: flex; align-items: center; background: var(--input-bg); border-radius: 10px;
+            padding: 4px 12px; border: 2px solid transparent;
             transition: border-color 0.15s, background 0.2s;
         }
         .calc-input-wrap:focus-within { border-color: var(--blue); }
         .calc-input-wrap.euro:focus-within { border-color: var(--orange); }
+
         .calc-input-wrap input {
-            flex: 1;
-            border: none;
-            background: transparent;
-            font-size: 1rem;
-            font-weight: 700;
-            color: var(--text);
-            padding: 10px 6px;
-            outline: none;
-            font-family: inherit;
-            width: 100%;
-            -moz-appearance: textfield;
+            flex: 1; border: none; background: transparent; font-size: 1rem; font-weight: 700;
+            color: var(--text); padding: 10px 6px; outline: none; font-family: inherit;
+            width: 100%; -moz-appearance: textfield;
         }
         .calc-input-wrap input::-webkit-outer-spin-button,
         .calc-input-wrap input::-webkit-inner-spin-button { -webkit-appearance: none; }
-        .calc-input-wrap .currency-badge {
-            font-size: 0.68rem;
-            font-weight: 700;
-            padding: 2px 6px;
-            border-radius: 5px;
-            color: white;
-            background: var(--blue);
+
+        .currency-badge {
+            font-size: 0.68rem; font-weight: 700; padding: 2px 6px; border-radius: 5px;
+            color: white; background: var(--blue);
         }
-        .calc-input-wrap .currency-badge.euro { background: var(--orange); }
+        .currency-badge.euro { background: var(--orange); }
 
         .spinner {
-            width: 12px;
-            height: 12px;
-            border: 2px solid rgba(0,0,0,0.1);
-            border-top-color: var(--blue);
-            border-radius: 50%;
-            animation: spin 0.7s linear infinite;
-            display: inline-block;
+            width: 12px; height: 12px; border: 2px solid rgba(0,0,0,0.1);
+            border-top-color: var(--blue); border-radius: 50%;
+            animation: spin 0.7s linear infinite; display: inline-block;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
 
@@ -239,7 +149,7 @@
             <h1>Monitor BCV</h1>
             <span>Banco Central de Venezuela</span>
         </div>
-        <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" aria-label="Cambiar tema"></button>
+        <button class="theme-toggle" onclick="toggleTheme()" aria-label="Cambiar tema"></button>
     </div>
 
     <div class="card">
@@ -248,12 +158,10 @@
                 <span id="badge-icon"></span>
                 <span id="badge-text">Conectando...</span>
             </div>
-            <div>
-                <select class="currency-select" id="currencySelect" onchange="onCurrencyChange()">
-                    <option value="USD">USD — Dólar</option>
-                    <option value="EUR">EUR — Euro</option>
-                </select>
-            </div>
+            <select class="currency-select" id="currencySelect" onchange="onCurrencyChange()">
+                <option value="USD">USD — Dólar</option>
+                <option value="EUR">EUR — Euro</option>
+            </select>
         </div>
 
         <div class="rate-display">
@@ -273,18 +181,18 @@
 
     <div class="card calc-card">
         <h3>Conversor</h3>
-        <div class="calc-row">
+        <div class="calc-fields">
             <div class="calc-field">
                 <label id="label-div">Dólares</label>
                 <div class="calc-input-wrap" id="wrap-div">
-                    <input type="number" id="input-div" placeholder="0,00" inputmode="decimal" oninput="bsChanged = false; convert()" />
+                    <input type="number" id="input-div" placeholder="0,00" inputmode="decimal" oninput="onInputChange('div')" />
                     <span class="currency-badge" id="badge-div">USD</span>
                 </div>
             </div>
             <div class="calc-field">
                 <label>Bolívares</label>
                 <div class="calc-input-wrap" id="wrap-bs">
-                    <input type="number" id="input-bs" placeholder="0,00" inputmode="decimal" oninput="bsChanged = true; convert()" />
+                    <input type="number" id="input-bs" placeholder="0,00" inputmode="decimal" oninput="onInputChange('bs')" />
                     <span class="currency-badge" id="badge-bs">Bs</span>
                 </div>
             </div>
@@ -297,7 +205,8 @@
         let allRates = { USD: null, EUR: null };
         let allRatesDisplay = { USD: null, EUR: null };
         let selectedCurrency = 'USD';
-        let bsChanged = true;
+        let lastChanged = 'bs';
+        let converting = false;
         let pollTimer = null;
 
         function toggleTheme() {
@@ -312,38 +221,46 @@
             document.getElementById('rate-flag').textContent = isEuro ? '💶' : '💵';
             document.getElementById('rate-code').textContent = selectedCurrency;
             document.getElementById('rate-unit-label').textContent = selectedCurrency;
-            document.getElementById('main-rate').className = 'rate-value ' + (isEuro ? 'euro-color' : '');
+            document.getElementById('main-rate').className = 'rate-value' + (isEuro ? ' euro-color' : '');
             document.getElementById('main-rate').textContent = allRatesDisplay[selectedCurrency] || '—';
             document.getElementById('label-div').textContent = isEuro ? 'Euros' : 'Dólares';
             document.getElementById('badge-div').textContent = selectedCurrency;
-            document.getElementById('badge-div').className = 'currency-badge ' + (isEuro ? 'euro' : '');
-            document.getElementById('wrap-div').className = 'calc-input-wrap ' + (isEuro ? 'euro' : '');
+            document.getElementById('badge-div').className = 'currency-badge' + (isEuro ? ' euro' : '');
+            document.getElementById('wrap-div').className = 'calc-input-wrap' + (isEuro ? ' euro' : '');
             document.getElementById('input-bs').value = '';
             document.getElementById('input-div').value = '';
-            bsChanged = true;
+            lastChanged = 'bs';
         }
 
-        function convert() {
-            const rate = allRates[selectedCurrency];
-            if (!rate) return;
+        function onInputChange(which) {
+            lastChanged = which;
+            doConvert();
+        }
 
-            if (bsChanged) {
-                const bsRaw = document.getElementById('input-bs').value.replace(/\s/g, '').replace(',', '.');
-                const bs = parseFloat(bsRaw);
-                if (bs && !isNaN(bs)) {
-                    document.getElementById('input-div').value = (bs / rate).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        function doConvert() {
+            const rate = allRates[selectedCurrency];
+            if (!rate || converting) return;
+            converting = true;
+
+            if (lastChanged === 'bs') {
+                const bsVal = parseFloat(document.getElementById('input-bs').value);
+                if (!isNaN(bsVal) && bsVal !== 0) {
+                    const result = (bsVal / rate).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    document.getElementById('input-div').value = result;
                 } else {
                     document.getElementById('input-div').value = '';
                 }
             } else {
-                const divRaw = document.getElementById('input-div').value.replace(/\s/g, '').replace(',', '.');
-                const div = parseFloat(divRaw);
-                if (div && !isNaN(div)) {
-                    document.getElementById('input-bs').value = (div * rate).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                const divVal = parseFloat(document.getElementById('input-div').value);
+                if (!isNaN(divVal) && divVal !== 0) {
+                    const result = (divVal * rate).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    document.getElementById('input-bs').value = result;
                 } else {
                     document.getElementById('input-bs').value = '';
                 }
             }
+
+            converting = false;
         }
 
         function updateUI(data) {
