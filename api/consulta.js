@@ -96,7 +96,7 @@ module.exports = async (req, res) => {
   if (cache && cache.fecha === fechaActual) {
     return res.status(200).json({
       success: true,
-      monedas: cache.monedtas,
+      monedas: cache.monedas,
       tasas: cache.tasas,
       ultima_actualizacion: cache.ultima_actualizacion,
       desde_cache: true,
@@ -143,7 +143,7 @@ module.exports = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      monedas: datosCache.monedtas,
+      monedas: datosCache.monedas,
       tasas: datosCache.tasas,
       ultima_actualizacion: datosCache.ultima_actualizacion,
       desde_cache: false,
