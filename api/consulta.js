@@ -1,7 +1,26 @@
 const axios = require('axios');
 const cheerio = require('cheerio');
+const path = require('path');
+const fs = require('fs');
 
 const BCV_URL = 'https://www.bcv.org.ve/';
+const CACHE_FILE = path.join(__dirname, 'cache.json');
+
+function getCachedRates() {
+  try {
+    if (fs.existsSync(CACHE_FILE)) {
+      const data = JSON.parse(fs.readFileSync(CACHE_FILE, 'utf8'));
+      return data;
+    }
+  } catch (_) {}
+  return null;
+}
+
+function saveCachedRates(data) {
+  try {
+    fs.writeFileSync(CACHE_FILE, JSON.stringify(data, null, 2));
+  } catch (_) {}
+}
 
 function parseNumber(str) {
   if (!str || typeof str !== 'string') return null;
@@ -27,15 +46,15 @@ async function fetchFromBCV() {
   const $ = cheerio.load(res.data);
   const tasas = {};
 
-    $('div.recuadrotsmc').each((_, el) => {
-      const text = $(el).text().replace(/\s+/g, ' ').trim();
-      const match = text.match(/\b(USD|EUR)\b\s*([\d.,]+)/i);
-      if (match) {
-        const codigo = match[1].toUpperCase();
-        const valor = parseNumber(match[2]);
-        if (valor && valor > 0) tasas[codigo.toLowerCase()] = valor;
-      }
-    });
+  $('div.recuadrotsmc').each((_, el) => {
+    const text = $(el).text().replace(/\s+/g, ' ').trim();
+    const match = text.match(/\b(USD|EUR)\b\s*([\d.,]+)/i);
+    if (match) {
+      const codigo = match[1].toUpperCase();
+      const valor = parseNumber(match[2]);
+      if (valor && valor > 0) tasas[codigo.toLowerCase()] = valor;
+    }
+  });
 
   const fechaEl = $('span.date-display-single, div.pull-right dinpro center').first();
   const fecha = fechaEl.text().trim()
@@ -68,6 +87,22 @@ module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Content-Type', 'application/json');
 
+  const ahora = new Date();
+  const horaVenezuela = new Date(ahora.toLocaleString('en-US', { timeZone: 'America/Caracas' }));
+  const fechaActual = horaVenezuela.toISOString().split('T')[0];
+
+  const cache = getCachedRates();
+
+  if (cache && cache.fecha === fechaActual) {
+    return res.status(200).json({
+      success: true,
+      monedas: cache.monedtas,
+      tasas: cache.tasas,
+      ultima_actualizacion: cache.ultima_actualizacion,
+      desde_cache: true,
+    });
+  }
+
   const estrategias = [
     { name: 'BCV (www.bcv.org.ve)', fn: fetchFromBCV },
     { name: 'BCV Backend', fn: fetchFromBCVBackend },
@@ -88,12 +123,11 @@ module.exports = async (req, res) => {
   }
 
   if (resultado) {
-    const ahora = new Date().toLocaleString('es-ES', {
-      timeZone: 'America/Caracas',
-      day: '2-digit', month: 'long', year: 'numeric',
-    });
-    return res.status(200).json({
-      success: true,
+    const fechaTxt = new Date(horaVenezuela.getTime() - (horaVenezuela.getTimezoneOffset() * 60000))
+      .toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' });
+
+    const datosCache = {
+      fecha: fechaActual,
       monedas: {
         USD: formatRate(resultado.usd),
         EUR: resultado.eur && resultado.eur > 0 ? formatRate(resultado.eur) : null,
@@ -102,13 +136,24 @@ module.exports = async (req, res) => {
         USD: resultado.usd,
         EUR: resultado.eur && resultado.eur > 0 ? resultado.eur : null,
       },
-      ultima_actualizacion: fuente + (resultado.fecha ? ' | Fecha valor: ' + resultado.fecha : ' | ' + ahora),
+      ultima_actualizacion: fuente + (resultado.fecha ? ' | Fecha valor: ' + resultado.fecha : ' | ' + fechaTxt),
+    };
+
+    saveCachedRates(datosCache);
+
+    return res.status(200).json({
+      success: true,
+      monedas: datosCache.monedtas,
+      tasas: datosCache.tasas,
+      ultima_actualizacion: datosCache.ultima_actualizacion,
+      desde_cache: false,
     });
   }
 
   return res.status(200).json({
     success: false,
     monedas: {},
+    tasas: {},
     ultima_actualizacion: 'Sin datos',
   });
 };
