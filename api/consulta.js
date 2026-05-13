@@ -6,20 +6,26 @@ const fs = require('fs');
 const BCV_URL = 'https://www.bcv.org.ve/';
 const CACHE_FILE = path.join(__dirname, 'cache.json');
 
-function getCachedRates() {
+function getHistorial() {
   try {
     if (fs.existsSync(CACHE_FILE)) {
       const data = JSON.parse(fs.readFileSync(CACHE_FILE, 'utf8'));
-      return data;
+      if (data && data.historial) return data.historial;
     }
   } catch (_) {}
-  return null;
+  return [];
 }
 
-function saveCachedRates(data) {
+function saveHistorial(historial) {
   try {
-    fs.writeFileSync(CACHE_FILE, JSON.stringify(data, null, 2));
+    fs.writeFileSync(CACHE_FILE, JSON.stringify({ historial }, null, 2));
   } catch (_) {}
+}
+
+function pushToHistorial(historial, entry) {
+  historial = historial.filter(e => e.fecha !== entry.fecha);
+  historial.unshift(entry);
+  return historial.slice(0, 3);
 }
 
 function parseNumber(str) {
@@ -76,8 +82,8 @@ async function fetchFromBCVBackend() {
       axios.get('https://www.bcv.org.ve/backend/abrir-bcv-dolar', { timeout: 8000 }),
     ]);
     return {
-      usd: parseNumber(String(eurRes.data)) || null,
-      eur: parseNumber(String(usdRes.data)) || null,
+      usd: parseNumber(String(usdRes.data)) || null,
+      eur: parseNumber(String(eurRes.data)) || null,
     };
   } catch (_) {}
   return { usd: null, eur: null };
@@ -91,14 +97,16 @@ module.exports = async (req, res) => {
   const horaVenezuela = new Date(ahora.toLocaleString('en-US', { timeZone: 'America/Caracas' }));
   const fechaActual = horaVenezuela.toISOString().split('T')[0];
 
-  const cache = getCachedRates();
+  let historial = getHistorial();
+  const entryHoy = historial.find(e => e.fecha === fechaActual);
 
-  if (cache && cache.fecha === fechaActual) {
+  if (entryHoy) {
     return res.status(200).json({
       success: true,
-      monedas: cache.monedas,
-      tasas: cache.tasas,
-      ultima_actualizacion: cache.ultima_actualizacion,
+      monedas: entryHoy.monedas,
+      tasas: entryHoy.tasas,
+      ultima_actualizacion: entryHoy.ultima_actualizacion,
+      historial,
       desde_cache: true,
     });
   }
@@ -126,7 +134,7 @@ module.exports = async (req, res) => {
     const fechaTxt = new Date(horaVenezuela.getTime() - (horaVenezuela.getTimezoneOffset() * 60000))
       .toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' });
 
-    const datosCache = {
+    const entry = {
       fecha: fechaActual,
       monedas: {
         USD: formatRate(resultado.usd),
@@ -139,13 +147,15 @@ module.exports = async (req, res) => {
       ultima_actualizacion: fuente + (resultado.fecha ? ' | Fecha valor: ' + resultado.fecha : ' | ' + fechaTxt),
     };
 
-    saveCachedRates(datosCache);
+    historial = pushToHistorial(historial, entry);
+    saveHistorial(historial);
 
     return res.status(200).json({
       success: true,
-      monedas: datosCache.monedas,
-      tasas: datosCache.tasas,
-      ultima_actualizacion: datosCache.ultima_actualizacion,
+      monedas: entry.monedas,
+      tasas: entry.tasas,
+      ultima_actualizacion: entry.ultima_actualizacion,
+      historial,
       desde_cache: false,
     });
   }
@@ -154,6 +164,7 @@ module.exports = async (req, res) => {
     success: false,
     monedas: {},
     tasas: {},
+    historial,
     ultima_actualizacion: 'Sin datos',
   });
 };

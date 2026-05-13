@@ -93,6 +93,34 @@
         .currency-select:focus { border-color: var(--blue); }
         .currency-select option { font-weight: 700; }
 
+        .historial {
+            margin-top: 14px;
+            border-top: 1px solid var(--border);
+            padding-top: 14px;
+        }
+        .historial h4 {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 10px;
+        }
+        .historial-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .historial-item:last-child { border-bottom: none; }
+        .historial-item .hi-fecha { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; }
+        .historial-item .hi-valores { display: flex; gap: 14px; font-size: 0.8rem; font-weight: 700; }
+        .historial-item .hi-valor { }
+        .historial-vacio {
+            font-size: 0.75rem; color: var(--text-muted); text-align: center; padding: 10px 0;
+        }
+
         .rate-display { text-align: center; margin-bottom: 16px; }
         .rate-currency-row { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 4px; }
         .rate-flag { font-size: 1.8rem; }
@@ -181,6 +209,11 @@
             <span>📅</span>
             <span>Fecha Valor: <strong id="fecha-val">—</strong></span>
         </div>
+
+        <div class="historial" id="historial-section" style="display:none">
+            <h4>📊 Historial últimos 3 días</h4>
+            <div id="historial-list"></div>
+        </div>
     </div>
 
     <div class="card calc-card">
@@ -266,6 +299,28 @@
             }
         }
 
+        function renderHistorial(historial) {
+            const section = document.getElementById('historial-section');
+            const list = document.getElementById('historial-list');
+            list.innerHTML = '';
+            const hoy = historial[0].fecha;
+            historial.forEach((entry, i) => {
+                if (i === 0) return;
+                const div = document.createElement('div');
+                div.className = 'historial-item';
+                const f = entry.fecha.split('-').reverse().join('/');
+                div.innerHTML = `
+                    <span class="hi-fecha">${f}</span>
+                    <div class="hi-valores">
+                        <span class="hi-valor" style="color:var(--blue)">USD ${entry.monedas.USD || '—'}</span>
+                        <span class="hi-valor" style="color:var(--orange)">EUR ${entry.monedas.EUR || '—'}</span>
+                    </div>
+                `;
+                list.appendChild(div);
+            });
+            section.style.display = historial.length > 1 ? '' : 'none';
+        }
+
         function updateUI(data) {
             const badge = document.getElementById('badge');
             document.getElementById('badge-icon').innerHTML = '';
@@ -283,6 +338,9 @@
                     }
                 });
                 onCurrencyChange();
+                if (data.historial && data.historial.length > 1) {
+                    renderHistorial(data.historial);
+                }
             } else {
                 badge.className = 'badge error';
                 document.getElementById('badge-text').textContent = 'Sin datos';
