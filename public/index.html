@@ -106,6 +106,34 @@
             letter-spacing: 0.5px;
             margin-bottom: 10px;
         }
+        .date-selector {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 10px;
+        }
+        .date-btn {
+            flex: 1;
+            padding: 7px 4px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--input-bg);
+            color: var(--text-muted);
+            font-size: 0.7rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+            text-align: center;
+        }
+        .date-btn.active {
+            background: var(--blue);
+            color: white;
+            border-color: var(--blue);
+        }
+        .date-btn.no-data {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
         .historial-item {
             display: flex;
             align-items: center;
@@ -116,7 +144,6 @@
         .historial-item:last-child { border-bottom: none; }
         .historial-item .hi-fecha { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; }
         .historial-item .hi-valores { display: flex; gap: 14px; font-size: 0.8rem; font-weight: 700; }
-        .historial-item .hi-valor { }
         .historial-vacio {
             font-size: 0.75rem; color: var(--text-muted); text-align: center; padding: 10px 0;
         }
@@ -211,7 +238,8 @@
         </div>
 
         <div class="historial" id="historial-section" style="display:none">
-            <h4>📊 Historial últimos 3 días</h4>
+            <h4>📅 Seleccionar fecha</h4>
+            <div class="date-selector" id="date-selector"></div>
             <div id="historial-list"></div>
         </div>
     </div>
@@ -244,11 +272,70 @@
         let selectedCurrency = 'USD';
         let activeField = null;
         let pollTimer = null;
+        let historialData = [];
+        let selectedDateIndex = 0;
 
         function toggleTheme() {
             const isDark = document.body.dataset.theme === 'dark';
             document.body.dataset.theme = isDark ? '' : 'dark';
             localStorage.setItem('theme', isDark ? 'light' : 'dark');
+        }
+
+        function loadDateEntry(index) {
+            if (!historialData[index]) return;
+            selectedDateIndex = index;
+            const entry = historialData[index];
+            Object.keys(entry.monedas).forEach(k => {
+                if (entry.monedas[k]) {
+                    allRatesDisplay[k] = entry.monedas[k];
+                    if (entry.tasas && entry.tasas[k]) {
+                        allRates[k] = entry.tasas[k];
+                    }
+                }
+            });
+            const fechaTxt = entry.ultima_actualizacion.replace(/BCV.*\|\s*/, '').replace(/Fecha valor:\s*/i, '').trim();
+            document.getElementById('fecha-val').textContent = fechaTxt;
+            document.getElementById('input-bs').value = '';
+            document.getElementById('input-div').value = '';
+            activeField = null;
+            const badge = document.getElementById('badge');
+            if (index === 0) {
+                badge.className = 'badge success';
+                document.getElementById('badge-text').textContent = 'Tasa Oficial BCV';
+            } else {
+                badge.className = 'badge success';
+                document.getElementById('badge-text').textContent = 'Historial — ' + entry.fecha.split('-').reverse().join('/');
+            }
+            onCurrencyChange();
+            document.querySelectorAll('.date-btn').forEach((btn, i) => {
+                btn.classList.toggle('active', i === index);
+            });
+        }
+
+        function renderHistorial(historial) {
+            historialData = historial;
+            const section = document.getElementById('historial-section');
+            const selector = document.getElementById('date-selector');
+            selector.innerHTML = '';
+            const dias = ['Hoy', 'Ayer', 'Hace 2 días'];
+            const max = Math.min(historial.length, 3);
+            for (let i = 0; i < max; i++) {
+                const btn = document.createElement('button');
+                btn.className = 'date-btn' + (i === selectedDateIndex ? ' active' : '');
+                const f = historial[i].fecha.split('-').reverse().join('/');
+                btn.textContent = dias[i] || f;
+                btn.title = f;
+                btn.onclick = () => loadDateEntry(i);
+                selector.appendChild(btn);
+            }
+            for (let i = max; i < 3; i++) {
+                const btn = document.createElement('button');
+                btn.className = 'date-btn no-data';
+                btn.textContent = ['Hoy', 'Ayer', 'Hace 2 días'][i];
+                btn.title = 'Sin datos disponibles';
+                selector.appendChild(btn);
+            }
+            section.style.display = 'block';
         }
 
         function onCurrencyChange() {
@@ -299,28 +386,6 @@
             }
         }
 
-        function renderHistorial(historial) {
-            const section = document.getElementById('historial-section');
-            const list = document.getElementById('historial-list');
-            list.innerHTML = '';
-            const hoy = historial[0].fecha;
-            historial.forEach((entry, i) => {
-                if (i === 0) return;
-                const div = document.createElement('div');
-                div.className = 'historial-item';
-                const f = entry.fecha.split('-').reverse().join('/');
-                div.innerHTML = `
-                    <span class="hi-fecha">${f}</span>
-                    <div class="hi-valores">
-                        <span class="hi-valor" style="color:var(--blue)">USD ${entry.monedas.USD || '—'}</span>
-                        <span class="hi-valor" style="color:var(--orange)">EUR ${entry.monedas.EUR || '—'}</span>
-                    </div>
-                `;
-                list.appendChild(div);
-            });
-            section.style.display = historial.length > 1 ? '' : 'none';
-        }
-
         function updateUI(data) {
             const badge = document.getElementById('badge');
             document.getElementById('badge-icon').innerHTML = '';
@@ -338,8 +403,12 @@
                     }
                 });
                 onCurrencyChange();
-                if (data.historial && data.historial.length > 1) {
+                if (data.historial && data.historial.length >= 1) {
                     renderHistorial(data.historial);
+                }
+                if (data.ultima_actualizacion && selectedDateIndex === 0) {
+                    const txt = data.ultima_actualizacion.replace(/BCV.*\|\s*/, '').replace(/Fecha valor:\s*/i, '').trim();
+                    document.getElementById('fecha-val').textContent = txt;
                 }
             } else {
                 badge.className = 'badge error';
@@ -364,10 +433,6 @@
                 if (!r.ok) throw new Error();
                 const data = await r.json();
                 updateUI(data);
-                if (data.ultima_actualizacion) {
-                    const txt = data.ultima_actualizacion.replace(/BCV.*\|\s*/, '').replace(/Fecha valor:\s*/i, '').trim();
-                    document.getElementById('fecha-val').textContent = txt;
-                }
                 scheduleRetry(5 * 60 * 1000);
             } catch (_) {
                 badge.className = 'badge error';
