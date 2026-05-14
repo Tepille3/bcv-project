@@ -93,22 +93,29 @@ module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Content-Type', 'application/json');
 
-  const ahora = new Date();
+const ahora = new Date();
   const horaVenezuela = new Date(ahora.toLocaleString('en-US', { timeZone: 'America/Caracas' }));
   const fechaActual = horaVenezuela.toISOString().split('T')[0];
 
   let historial = getHistorial();
+
   const entryHoy = historial.find(e => e.fecha === fechaActual);
 
   if (entryHoy) {
-    return res.status(200).json({
-      success: true,
-      monedas: entryHoy.monedas,
-      tasas: entryHoy.tasas,
-      ultima_actualizacion: entryHoy.ultima_actualizacion,
-      historial,
-      desde_cache: true,
-    });
+    const fechaCache = new Date(entryHoy.fecha);
+    const fechaHoy = new Date(fechaActual);
+    if (fechaCache <= fechaHoy) {
+      return res.status(200).json({
+        success: true,
+        monedas: entryHoy.monedtas,
+        tasas: entryHoy.tasas,
+        ultima_actualizacion: entryHoy.ultima_actualizacion,
+        historial,
+        desde_cache: true,
+      });
+    } else {
+      historial = historial.filter(e => e.fecha !== entryHoy.fecha);
+    }
   }
 
   const estrategias = [
