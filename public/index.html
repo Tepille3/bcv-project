@@ -283,6 +283,15 @@
 
         function loadDateEntry(index) {
             if (!historialData[index]) return;
+            
+            // Verificar si el índice es el de hoy
+            const ahora = new Date();
+            const horaVenezuela = new Date(ahora.toLocaleString('en-US', { timeZone: 'America/Caracas' }));
+            const fechaHoy = String(horaVenezuela.getDate()).padStart(2, '0') + '/' + 
+                           String(horaVenezuela.getMonth() + 1).padStart(2, '0') + '/' + 
+                           horaVenezuela.getFullYear();
+            const fechaEntry = historialData[index].fecha.split('-').reverse().join('/');
+            
             selectedDateIndex = index;
             const entry = historialData[index];
             Object.keys(entry.monedas).forEach(k => {
@@ -293,18 +302,19 @@
                     }
                 }
             });
+            
             const fechaTxt = entry.fechaVenezuela || entry.fecha.split('-').reverse().join('/');
             document.getElementById('fecha-val').textContent = fechaTxt;
             document.getElementById('input-bs').value = '';
             document.getElementById('input-div').value = '';
             activeField = null;
             const badge = document.getElementById('badge');
-            if (index === 0) {
+            if (fechaEntry === fechaHoy) {
                 badge.className = 'badge success';
                 document.getElementById('badge-text').textContent = 'Tasa Oficial BCV';
             } else {
                 badge.className = 'badge success';
-                document.getElementById('badge-text').textContent = 'Historial — ' + entry.fecha.split('-').reverse().join('/');
+                document.getElementById('badge-text').textContent = 'Historial — ' + fechaEntry;
             }
             onCurrencyChange();
             document.querySelectorAll('.date-btn').forEach((btn, i) => {
@@ -319,11 +329,23 @@
             selector.innerHTML = '';
             const dias = ['Hoy', 'Ayer', 'Hace 2 días'];
             const max = Math.min(historial.length, 3);
+            
+            // Obtener la fecha de hoy en formato Venezuela
+            const ahora = new Date();
+            const horaVenezuel = new Date(ahora.toLocaleString('en-US', { timeZone: 'America/Caracas' }));
+            const fechaHoy = String(horaVenezuel.getDate()).padStart(2, '0') + '/' + 
+                           String(horaVenezuel.getMonth() + 1).padStart(2, '0') + '/' + 
+                           horaVenezuel.getFullYear();
+            
             for (let i = 0; i < max; i++) {
                 const btn = document.createElement('button');
                 btn.className = 'date-btn' + (i === selectedDateIndex ? ' active' : '');
+                
+                // Formatear fecha como DD/MM/AAAA
                 const f = historial[i].fecha.split('-').reverse().join('/');
-                btn.textContent = dias[i] || f;
+                
+                // Agregar la fecha al texto del botón
+                btn.textContent = dias[i] + ' (' + f + ')';
                 btn.title = f;
                 btn.onclick = () => loadDateEntry(i);
                 selector.appendChild(btn);
@@ -386,7 +408,7 @@
             }
         }
 
-        function updateUI(data) {
+function updateUI(data) {
             const badge = document.getElementById('badge');
             document.getElementById('badge-icon').innerHTML = '';
             if (data.success && data.monedas) {
@@ -410,6 +432,16 @@
                   document.getElementById('fecha-val').textContent = txt;
                 }
                 if (data.historial && data.historial.length >= 1) {
+                    // Determinar el índice correcto para "Hoy" basado en la fecha de Venezuela
+                    const ahora = new Date();
+                    const horaVenezuela = new Date(ahora.toLocaleString('en-US', { timeZone: 'America/Caracas' }));
+                    const fechaHoy = String(horaVenezuela.getDate()).padStart(2, '0') + '/' + 
+                                   String(horaVenezuela.getMonth() + 1).padStart(2, '0') + '/' + 
+                                   horaVenezuela.getFullYear();
+                    
+                    const idxHoy = data.historial.findIndex(h => h.fecha.split('-').reverse().join('/') === fechaHoy);
+                    selectedDateIndex = idxHoy >= 0 ? idxHoy : 0;
+                    loadDateEntry(selectedDateIndex);
                     renderHistorial(data.historial);
                 }
             } else {
