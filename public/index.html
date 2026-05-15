@@ -285,7 +285,7 @@
             localStorage.setItem('theme', isDark ? 'light' : 'dark');
         }
 
-        function loadDateEntry(index) {
+        function loadDateEntry(index, btnIndex) {
             if (!historialData[index]) return;
             
             // Verificar si el índice es el de hoy
@@ -332,7 +332,7 @@
             }
             onCurrencyChange();
             document.querySelectorAll('.date-btn').forEach((btn, i) => {
-                btn.classList.toggle('active', i === index);
+                btn.classList.toggle('active', i === btnIndex);
             });
         }
 
@@ -349,11 +349,7 @@
                            String(horaVenezuela.getMonth() + 1).padStart(2, '0') + '/' + 
                            horaVenezuela.getFullYear();
             
-            // Crear botones: Mañana, Hoy, Ayer, Hace 2 días
-            const labels = ['Mañana', 'Hoy', 'Ayer', 'Hace 2 días'];
-            const max = Math.min(historial.length, 4);
-            
-            // Determinar cuál botón es "Hoy" en el historial
+            // Encontrar el índice donde la fecha coincide con HOY en Venezuela
             let hoyIndex = -1;
             for (let i = 0; i < historial.length; i++) {
                 const f = historial[i].fecha.split('-').reverse().join('/');
@@ -363,24 +359,29 @@
                 }
             }
             
-            // Crear los botones en orden: Mañana (0), Hoy (1), Ayer (2), Hace 2 días (3)
-            for (let i = 0; i < max; i++) {
-                const btn = document.createElement('button');
-                const isHoy = (i === 1); // El segundo botón es "Hoy"
-                btn.className = 'date-btn' + (i === selectedDateIndex ? ' active' : '') + (isHoy ? ' hoy-btn' : '');
-                const f = historial[i].fecha.split('-').reverse().join('/');
-                btn.textContent = labels[i] + ' (' + f + ')';
-                btn.title = f;
-                btn.onclick = () => loadDateEntry(i);
-                selector.appendChild(btn);
-            }
+            // Si no encuentra "Hoy", usar el índice 1 por defecto
+            if (hoyIndex === -1) hoyIndex = 1;
             
-            // Botones vacíos si no hay datos
-            for (let i = max; i < 4; i++) {
+            // Determinar los índices relativos: Mañana, Hoy, Ayer, Hace 2 días
+            const indices = [hoyIndex - 1, hoyIndex, hoyIndex + 1, hoyIndex + 2];
+            const labels = ['Mañana', 'Hoy', 'Ayer', 'Hace 2 días'];
+            
+            for (let j = 0; j < 4; j++) {
+                const i = indices[j];
                 const btn = document.createElement('button');
-                btn.className = 'date-btn no-data';
-                btn.textContent = labels[i];
-                btn.title = 'Sin datos disponibles';
+                
+                if (i >= 0 && i < historial.length) {
+                    const f = historial[i].fecha.split('-').reverse().join('/');
+                    const isHoy = (j === 1);
+                    btn.className = 'date-btn' + (i === selectedDateIndex ? ' active' : '') + (isHoy ? ' hoy-btn' : '');
+                    btn.textContent = labels[j] + ' (' + f + ')';
+                    btn.title = f;
+                    btn.onclick = () => loadDateEntry(i, j);
+                } else {
+                    btn.className = 'date-btn no-data';
+                    btn.textContent = labels[j];
+                    btn.title = 'Sin datos disponibles';
+                }
                 selector.appendChild(btn);
             }
             section.style.display = 'block';
@@ -468,10 +469,25 @@ function updateUI(data) {
                   document.getElementById('fecha-val').textContent = txt;
                 }
                 if (data.historial && data.historial.length >= 1) {
-                    // Por defecto seleccionar "Hoy" (índice 1)
-                    const hoyIndex = 1;
-                    selectedDateIndex = (selectedDateIndex >= 0 && selectedDateIndex < data.historial.length) ? selectedDateIndex : hoyIndex;
-                    loadDateEntry(selectedDateIndex);
+                    // Calcular la fecha de HOY en Venezuela
+                    const ahora = new Date();
+                    const horaVenezuela = new Date(ahora.toLocaleString('en-US', { timeZone: 'America/Caracas' }));
+                    const fechaHoy = String(horaVenezuela.getDate()).padStart(2, '0') + '/' + 
+                                   String(horaVenezuela.getMonth() + 1).padStart(2, '0') + '/' + 
+                                   horaVenezuela.getFullYear();
+                    
+                    // Encontrar el índice donde la fecha coincida con HOY en Venezuela
+                    let hoyIndex = 1; // Por defecto Hoy
+                    for (let i = 0; i < data.historial.length; i++) {
+                        const f = data.historial[i].fecha.split('-').reverse().join('/');
+                        if (f === fechaHoy) {
+                            hoyIndex = i;
+                            break;
+                        }
+                    }
+                    
+                    selectedDateIndex = hoyIndex;
+                    loadDateEntry(selectedDateIndex, 1);
                     renderHistorial(data.historial);
                 }
             } else {
@@ -510,6 +526,19 @@ function updateUI(data) {
             document.body.dataset.theme = localStorage.getItem('theme') === 'light' ? '' : 'dark';
         })();
         setTimeout(consultarTasa, 600);
+
+        let ultimaFechaVenezuela = '';
+        setInterval(() => {
+            const ahora = new Date();
+            const horaVenezuela = new Date(ahora.toLocaleString('en-US', { timeZone: 'America/Caracas' }));
+            const fechaActual = String(horaVenezuela.getDate()).padStart(2, '0') + '/' + 
+                               String(horaVenezuela.getMonth() + 1).padStart(2, '0') + '/' + 
+                               horaVenezuela.getFullYear();
+            if (ultimaFechaVenezuela !== '' && ultimaFechaVenezuela !== fechaActual) {
+                consultarTasa();
+            }
+            ultimaFechaVenezuela = fechaActual;
+        }, 60000);
 
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('/sw.js').catch(() => {});

@@ -93,13 +93,13 @@ module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Content-Type', 'application/json');
 
-  const ahora = new Date();
+const ahora = new Date();
   const horaVenezuela = new Date(ahora.toLocaleString('en-US', { timeZone: 'America/Caracas' }));
   const fechaActual = horaVenezuela.getFullYear() + '-' + 
     String(horaVenezuela.getMonth() + 1).padStart(2, '0') + '-' + 
     String(horaVenezuela.getDate()).padStart(2, '0');
 
-let historial = getHistorial();
+  let historial = getHistorial();
   
   // Limpiar entradas con fecha futura (mayor a hoy en Venezuela)
   historial = historial.filter(e => {
@@ -131,13 +131,14 @@ let historial = getHistorial();
   }
 
   if (resultado) {
-    const fechaVenezuela = new Date(horaVenezuela.getTime() - (horaVenezuela.getTimezoneOffset() * 60000))
-      .toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' });
+    // Calcular fecha Venezuela para HOY
+    const mesesLargo = { '01': 'enero', '02': 'febrero', '03': 'marzo', '04': 'abril', '05': 'mayo', '06': 'junio', '07': 'julio', '08': 'agosto', '09': 'septiembre', '10': 'octubre', '11': 'noviembre', '12': 'diciembre' };
+    const fechaVenezuelaHoy = fechaActual.split('-')[2] + ' de ' + mesesLargo[fechaActual.split('-')[1]] + ' de ' + fechaActual.split('-')[0];
 
     // Guardar entrada para HOY
     const entryHoy = {
       fecha: fechaActual,
-      fechaVenezuela: fechaVenezuela,
+      fechaVenezuela: fechaVenezuelaHoy,
       monedas: {
         USD: formatRate(resultado.usd),
         EUR: resultado.eur && resultado.eur > 0 ? formatRate(resultado.eur) : null,
@@ -146,7 +147,7 @@ let historial = getHistorial();
         USD: resultado.usd,
         EUR: resultado.eur && resultado.eur > 0 ? resultado.eur : null,
       },
-      ultima_actualizacion: fuente + ' | Fecha BCV: ' + (resultado.fecha || fechaVenezuela),
+      ultima_actualizacion: fuente + ' | Fecha BCV: ' + (resultado.fecha || fechaVenezuelaHoy),
     };
     historial = pushToHistorial(historial, entryHoy);
 
