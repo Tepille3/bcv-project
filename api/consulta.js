@@ -1,25 +1,25 @@
 const axios = require('axios');
 const cheerio = require('cheerio');
 const path = require('path');
-const fs = require('fs');
+const db = require('./database');
 
 const BCV_URL = 'https://www.bcv.org.ve/';
-const CACHE_FILE = path.join(__dirname, 'cache.json');
 
 function getHistorial() {
-  try {
-    if (fs.existsSync(CACHE_FILE)) {
-      const data = JSON.parse(fs.readFileSync(CACHE_FILE, 'utf8'));
-      if (data && data.historial) return data.historial;
-    }
-  } catch (_) {}
-  return [];
-}
-
-function saveHistorial(historial) {
-  try {
-    fs.writeFileSync(CACHE_FILE, JSON.stringify({ historial }, null, 2));
-  } catch (_) {}
+  const rates = db.getRates();
+  return rates.map(r => ({
+    fecha: r.date,
+    fechaVenezuela: r.fechaVenezuela,
+    monedas: {
+      USD: r.usd.toFixed(2).replace('.', ','),
+      EUR: r.eur ? r.eur.toFixed(2).replace('.', ',') : null,
+    },
+    tasas: {
+      USD: r.usd,
+      EUR: r.eur,
+    },
+    ultima_actualizacion: r.fuente + ' | Fecha BCV: ' + r.fechaVenezuela,
+  }));
 }
 
 function pushToHistorial(historial, entry) {
@@ -162,7 +162,7 @@ const ahora = new Date();
         const anio = matchFecha[3];
         const fechaKey = `${anio}-${mes}-${dia}`;
         
-        if (fechaKey > fechaActual) {
+if (fechaKey > fechaActual) {
           const mesesLargo = { '01': 'enero', '02': 'febrero', '03': 'marzo', '04': 'abril', '05': 'mayo', '06': 'junio', '07': 'julio', '08': 'agosto', '09': 'septiembre', '10': 'octubre', '11': 'noviembre', '12': 'diciembre' };
           const entryManana = {
             fecha: fechaKey,
@@ -178,13 +178,16 @@ const ahora = new Date();
             ultima_actualizacion: fuente + ' | Fecha BCV: ' + resultado.fecha,
           };
           historial = pushToHistorial(historial, entryManana);
+          db.saveRate(fechaKey, entryManana.fechaVenezuela, resultado.usd, resultado.eur, fuente);
         }
       }
     }
 
-    saveHistorial(historial);
+    db.saveRate(fechaActual, fechaVenezuelaHoy, resultado.usd, resultado.eur, fuente);
 
-return res.status(200).json({
+    historial = getHistorial();
+
+    return res.status(200).json({
       success: true,
       monedas: entryHoy.monedas,
       tasas: entryHoy.tasas,
@@ -193,7 +196,7 @@ return res.status(200).json({
       historial,
       desde_cache: false,
     });
-  }
+}
 
   return res.status(200).json({
     success: false,

@@ -4,4 +4,3 @@ package-lock.json
 .cache/
 .DS_Store
 Thumbs.db
-api/cache.json
