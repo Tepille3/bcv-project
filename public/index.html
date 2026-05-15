@@ -293,7 +293,7 @@
                     }
                 }
             });
-            const fechaTxt = entry.ultima_actualizacion.replace(/BCV.*\|\s*/, '').replace(/Fecha valor:\s*/i, '').trim();
+            const fechaTxt = entry.fechaVenezuela || entry.fecha.split('-').reverse().join('/');
             document.getElementById('fecha-val').textContent = fechaTxt;
             document.getElementById('input-bs').value = '';
             document.getElementById('input-div').value = '';
@@ -403,12 +403,14 @@
                     }
                 });
                 onCurrencyChange();
+                if (data.fechaVenezuela) {
+                  document.getElementById('fecha-val').textContent = data.fechaVenezuela;
+                } else if (data.ultima_actualizacion) {
+                  const txt = data.ultima_actualizacion.replace(/BCV.*\|\s*/, '').replace(/Fecha valor:\s*/i, '').trim();
+                  document.getElementById('fecha-val').textContent = txt;
+                }
                 if (data.historial && data.historial.length >= 1) {
                     renderHistorial(data.historial);
-                }
-                if (data.ultima_actualizacion && selectedDateIndex === 0) {
-                    const txt = data.ultima_actualizacion.replace(/BCV.*\|\s*/, '').replace(/Fecha valor:\s*/i, '').trim();
-                    document.getElementById('fecha-val').textContent = txt;
                 }
             } else {
                 badge.className = 'badge error';

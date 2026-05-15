@@ -107,10 +107,11 @@ module.exports = async (req, res) => {
     const fechaCache = new Date(entryHoy.fecha);
     const fechaHoy = new Date(fechaActual);
     if (fechaCache <= fechaHoy) {
-      return res.status(200).json({
+return res.status(200).json({
         success: true,
         monedas: entryHoy.monedas,
         tasas: entryHoy.tasas,
+        fechaVenezuela: entryHoy.fechaVenezuela,
         ultima_actualizacion: entryHoy.ultima_actualizacion,
         historial,
         desde_cache: true,
@@ -140,11 +141,12 @@ module.exports = async (req, res) => {
   }
 
   if (resultado) {
-    const fechaTxt = new Date(horaVenezuela.getTime() - (horaVenezuela.getTimezoneOffset() * 60000))
+    const fechaVenezuela = new Date(horaVenezuela.getTime() - (horaVenezuela.getTimezoneOffset() * 60000))
       .toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' });
 
     const entry = {
       fecha: fechaActual,
+      fechaVenezuela: fechaVenezuela,
       monedas: {
         USD: formatRate(resultado.usd),
         EUR: resultado.eur && resultado.eur > 0 ? formatRate(resultado.eur) : null,
@@ -153,16 +155,17 @@ module.exports = async (req, res) => {
         USD: resultado.usd,
         EUR: resultado.eur && resultado.eur > 0 ? resultado.eur : null,
       },
-      ultima_actualizacion: fuente + (resultado.fecha ? ' | Fecha valor: ' + resultado.fecha : ' | ' + fechaTxt),
+      ultima_actualizacion: fuente + ' | Fecha BCV: ' + (resultado.fecha || fechaVenezuela),
     };
 
     historial = pushToHistorial(historial, entry);
     saveHistorial(historial);
 
-    return res.status(200).json({
+return res.status(200).json({
       success: true,
-      monedas: entry.monedas,
+      monedas: entry.monedtas,
       tasas: entry.tasas,
+      fechaVenezuela: entry.fechaVenezuela,
       ultima_actualizacion: entry.ultima_actualizacion,
       historial,
       desde_cache: false,
