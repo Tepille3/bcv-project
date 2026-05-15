@@ -101,12 +101,17 @@ const ahora = new Date();
 
   let historial = getHistorial();
   
+  console.log('DEBUG - Historial antes de filtro:', historial.length, historial.map(h => h.fecha));
+
   // Limpiar entradas con fecha futura (mayor a hoy en Venezuela)
   historial = historial.filter(e => {
     const fechaEntry = new Date(e.fecha);
     const fechaHoy = new Date(fechaActual);
+    console.log('DEBUG - Comparando:', e.fecha, 'vs', fechaActual, '->', fechaEntry.getTime() <= fechaHoy.getTime());
     return fechaEntry <= fechaHoy;
   });
+
+  console.log('DEBUG - Historial después de filtro:', historial.length);
 
   // Verificar si ya tenemos datos para hoy en cache
   const entryHoy = historial.find(e => e.fecha === fechaActual);
