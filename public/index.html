@@ -130,6 +130,10 @@
             color: white;
             border-color: var(--blue);
         }
+        .date-btn.hoy-btn.active {
+            background: var(--green);
+            border-color: var(--green);
+        }
         .date-btn.no-data {
             opacity: 0.4;
             cursor: not-allowed;
@@ -337,33 +341,45 @@
             const section = document.getElementById('historial-section');
             const selector = document.getElementById('date-selector');
             selector.innerHTML = '';
-            const dias = ['Hoy', 'Ayer', 'Hace 2 días'];
-            const max = Math.min(historial.length, 3);
             
-            // Obtener la fecha de hoy en formato Venezuela
+            // Obtener la fecha de hoy en formato DD/MM/AAAA
             const ahora = new Date();
-            const horaVenezuel = new Date(ahora.toLocaleString('en-US', { timeZone: 'America/Caracas' }));
-            const fechaHoy = String(horaVenezuel.getDate()).padStart(2, '0') + '/' + 
-                           String(horaVenezuel.getMonth() + 1).padStart(2, '0') + '/' + 
-                           horaVenezuel.getFullYear();
+            const horaVenezuela = new Date(ahora.toLocaleString('en-US', { timeZone: 'America/Caracas' }));
+            const fechaHoy = String(horaVenezuela.getDate()).padStart(2, '0') + '/' + 
+                           String(horaVenezuela.getMonth() + 1).padStart(2, '0') + '/' + 
+                           horaVenezuela.getFullYear();
             
+            // Crear botones: Mañana, Hoy, Ayer, Hace 2 días
+            const labels = ['Mañana', 'Hoy', 'Ayer', 'Hace 2 días'];
+            const max = Math.min(historial.length, 4);
+            
+            // Determinar cuál botón es "Hoy" en el historial
+            let hoyIndex = -1;
+            for (let i = 0; i < historial.length; i++) {
+                const f = historial[i].fecha.split('-').reverse().join('/');
+                if (f === fechaHoy) {
+                    hoyIndex = i;
+                    break;
+                }
+            }
+            
+            // Crear los botones en orden: Mañana (0), Hoy (1), Ayer (2), Hace 2 días (3)
             for (let i = 0; i < max; i++) {
                 const btn = document.createElement('button');
-                btn.className = 'date-btn' + (i === selectedDateIndex ? ' active' : '');
-                
-                // Formatear fecha como DD/MM/AAAA
+                const isHoy = (i === 1); // El segundo botón es "Hoy"
+                btn.className = 'date-btn' + (i === selectedDateIndex ? ' active' : '') + (isHoy ? ' hoy-btn' : '');
                 const f = historial[i].fecha.split('-').reverse().join('/');
-                
-                // Agregar la fecha al texto del botón
-                btn.textContent = dias[i] + ' (' + f + ')';
+                btn.textContent = labels[i] + ' (' + f + ')';
                 btn.title = f;
                 btn.onclick = () => loadDateEntry(i);
                 selector.appendChild(btn);
             }
-            for (let i = max; i < 3; i++) {
+            
+            // Botones vacíos si no hay datos
+            for (let i = max; i < 4; i++) {
                 const btn = document.createElement('button');
                 btn.className = 'date-btn no-data';
-                btn.textContent = ['Hoy', 'Ayer', 'Hace 2 días'][i];
+                btn.textContent = labels[i];
                 btn.title = 'Sin datos disponibles';
                 selector.appendChild(btn);
             }
@@ -452,15 +468,9 @@ function updateUI(data) {
                   document.getElementById('fecha-val').textContent = txt;
                 }
                 if (data.historial && data.historial.length >= 1) {
-                    // Determinar el índice correcto para "Hoy" basado en la fecha de Venezuela
-                    const ahora = new Date();
-                    const horaVenezuela = new Date(ahora.toLocaleString('en-US', { timeZone: 'America/Caracas' }));
-                    const fechaHoy = String(horaVenezuela.getDate()).padStart(2, '0') + '/' + 
-                                   String(horaVenezuela.getMonth() + 1).padStart(2, '0') + '/' + 
-                                   horaVenezuela.getFullYear();
-                    
-                    const idxHoy = data.historial.findIndex(h => h.fecha.split('-').reverse().join('/') === fechaHoy);
-                    selectedDateIndex = idxHoy >= 0 ? idxHoy : 0;
+                    // Por defecto seleccionar "Hoy" (índice 1)
+                    const hoyIndex = 1;
+                    selectedDateIndex = (selectedDateIndex >= 0 && selectedDateIndex < data.historial.length) ? selectedDateIndex : hoyIndex;
                     loadDateEntry(selectedDateIndex);
                     renderHistorial(data.historial);
                 }
