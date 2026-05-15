@@ -108,7 +108,9 @@ let historial = getHistorial();
     return fechaEntry <= fechaHoy;
   });
 
-  // Siempre hacer nueva petición para asegurar datos frescos
+  // Verificar si ya tenemos datos para hoy en cache
+  const entryHoy = historial.find(e => e.fecha === fechaActual);
+
   const estrategias = [
     { name: 'BCV (www.bcv.org.ve)', fn: fetchFromBCV },
     { name: 'BCV Backend', fn: fetchFromBCVBackend },
@@ -132,7 +134,8 @@ let historial = getHistorial();
     const fechaVenezuela = new Date(horaVenezuela.getTime() - (horaVenezuela.getTimezoneOffset() * 60000))
       .toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' });
 
-    const entry = {
+    // Guardar entrada para HOY
+    const entryHoy = {
       fecha: fechaActual,
       fechaVenezuela: fechaVenezuela,
       monedas: {
@@ -145,16 +148,46 @@ let historial = getHistorial();
       },
       ultima_actualizacion: fuente + ' | Fecha BCV: ' + (resultado.fecha || fechaVenezuela),
     };
+    historial = pushToHistorial(historial, entryHoy);
 
-    historial = pushToHistorial(historial, entry);
+    // Si el BCV ya publicó la tasa de MAÑANA, guardarla también
+    if (resultado.fecha) {
+      const fechaBCV = resultado.fecha;
+      const matchFecha = fechaBCV.match(/(\d{1,2})\s+(\w+)\s+(\d{4})/);
+      if (matchFecha) {
+        const meses = { 'enero': '01', 'febrero': '02', 'marzo': '03', 'abril': '04', 'mayo': '05', 'junio': '06', 'julio': '07', 'agosto': '08', 'septiembre': '09', 'octubre': '10', 'noviembre': '11', 'diciembre': '12' };
+        const dia = matchFecha[1].padStart(2, '0');
+        const mes = meses[matchFecha[2].toLowerCase()] || '01';
+        const anio = matchFecha[3];
+        const fechaKey = `${anio}-${mes}-${dia}`;
+        
+        if (fechaKey > fechaActual) {
+          const entryManana = {
+            fecha: fechaKey,
+            fechaVenezuela: fechaKey.split('-').reverse().join(' de ').replace(/(\d{2})-(\d{2})-(\d{4})/g, '$2 de $3'),
+            monedas: {
+              USD: formatRate(resultado.usd),
+              EUR: resultado.eur && resultado.eur > 0 ? formatRate(resultado.eur) : null,
+            },
+            tasas: {
+              USD: resultado.usd,
+              EUR: resultado.eur && resultado.eur > 0 ? resultado.eur : null,
+            },
+            ultima_actualizacion: fuente + ' | Fecha BCV: ' + resultado.fecha,
+          };
+          historial = pushToHistorial(historial, entryManana);
+        }
+      }
+    }
+
     saveHistorial(historial);
 
 return res.status(200).json({
       success: true,
-      monedas: entry.monedas,
-      tasas: entry.tasas,
-      fechaVenezuela: entry.fechaVenezuela,
-      ultima_actualizacion: entry.ultima_actualizacion,
+      monedas: entryHoy.monedas,
+      tasas: entryHoy.tasas,
+      fechaVenezuela: entryHoy.fechaVenezuela,
+      ultima_actualizacion: entryHoy.ultima_actualizacion,
       historial,
       desde_cache: false,
     });
