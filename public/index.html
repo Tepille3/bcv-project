@@ -281,16 +281,15 @@
             localStorage.setItem('theme', isDark ? 'light' : 'dark');
         }
 
-        function loadDateEntry(index) {
+function loadDateEntry(index) {
             if (!historialData[index]) return;
             
-            // Verificar si el índice es el de hoy
+            // Calcular la fecha de hoy en Venezuela
             const ahora = new Date();
             const horaVenezuela = new Date(ahora.toLocaleString('en-US', { timeZone: 'America/Caracas' }));
             const fechaHoy = String(horaVenezuela.getDate()).padStart(2, '0') + '/' + 
                            String(horaVenezuela.getMonth() + 1).padStart(2, '0') + '/' + 
                            horaVenezuela.getFullYear();
-            const fechaEntry = historialData[index].fecha.split('-').reverse().join('/');
             
             selectedDateIndex = index;
             const entry = historialData[index];
@@ -303,8 +302,9 @@
                 }
             });
             
-            const fechaTxt = entry.fechaVenezuela || entry.fecha.split('-').reverse().join('/');
-            document.getElementById('fecha-val').textContent = fechaTxt;
+            // Formatear fecha como DD/MM/AAAA
+            const fechaEntry = entry.fecha.split('-').reverse().join('/');
+            document.getElementById('fecha-val').textContent = fechaEntry;
             document.getElementById('input-bs').value = '';
             document.getElementById('input-div').value = '';
             activeField = null;
@@ -316,48 +316,10 @@
                 badge.className = 'badge success';
                 document.getElementById('badge-text').textContent = 'Historial — ' + fechaEntry;
             }
-            onCurrencyChange();
+onCurrencyChange();
             document.querySelectorAll('.date-btn').forEach((btn, i) => {
                 btn.classList.toggle('active', i === index);
             });
-        }
-
-        function renderHistorial(historial) {
-            historialData = historial;
-            const section = document.getElementById('historial-section');
-            const selector = document.getElementById('date-selector');
-            selector.innerHTML = '';
-            const dias = ['Hoy', 'Ayer', 'Hace 2 días'];
-            const max = Math.min(historial.length, 3);
-            
-            // Obtener la fecha de hoy en formato Venezuela
-            const ahora = new Date();
-            const horaVenezuel = new Date(ahora.toLocaleString('en-US', { timeZone: 'America/Caracas' }));
-            const fechaHoy = String(horaVenezuel.getDate()).padStart(2, '0') + '/' + 
-                           String(horaVenezuel.getMonth() + 1).padStart(2, '0') + '/' + 
-                           horaVenezuel.getFullYear();
-            
-            for (let i = 0; i < max; i++) {
-                const btn = document.createElement('button');
-                btn.className = 'date-btn' + (i === selectedDateIndex ? ' active' : '');
-                
-                // Formatear fecha como DD/MM/AAAA
-                const f = historial[i].fecha.split('-').reverse().join('/');
-                
-                // Agregar la fecha al texto del botón
-                btn.textContent = dias[i] + ' (' + f + ')';
-                btn.title = f;
-                btn.onclick = () => loadDateEntry(i);
-                selector.appendChild(btn);
-            }
-            for (let i = max; i < 3; i++) {
-                const btn = document.createElement('button');
-                btn.className = 'date-btn no-data';
-                btn.textContent = ['Hoy', 'Ayer', 'Hace 2 días'][i];
-                btn.title = 'Sin datos disponibles';
-                selector.appendChild(btn);
-            }
-            section.style.display = 'block';
         }
 
         function onCurrencyChange() {
@@ -426,7 +388,17 @@ function updateUI(data) {
                 });
                 onCurrencyChange();
                 if (data.fechaVenezuela) {
-                  document.getElementById('fecha-val').textContent = data.fechaVenezuela;
+                  // Convertir "14 de mayo de 2026" a "14/05/2026"
+                  const match = data.fechaVenezuela.match(/(\d{1,2})\s+de\s+(\w+)\s+de\s+(\d{4})/);
+                  if (match) {
+                    const meses = { 'enero': '01', 'febrero': '02', 'marzo': '03', 'abril': '04', 'mayo': '05', 'junio': '06', 'julio': '07', 'agosto': '08', 'septiembre': '09', 'octubre': '10', 'noviembre': '11', 'diciembre': '12' };
+                    const dia = match[1].padStart(2, '0');
+                    const mes = meses[match[2].toLowerCase()] || match[2];
+                    const anio = match[3];
+                    document.getElementById('fecha-val').textContent = dia + '/' + mes + '/' + anio;
+                  } else {
+                    document.getElementById('fecha-val').textContent = data.fechaVenezuela;
+                  }
                 } else if (data.ultima_actualizacion) {
                   const txt = data.ultima_actualizacion.replace(/BCV.*\|\s*/, '').replace(/Fecha valor:\s*/i, '').trim();
                   document.getElementById('fecha-val').textContent = txt;
