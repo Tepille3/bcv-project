@@ -146,7 +146,7 @@ const entryHoy = historial.find(e => e.fecha === fechaActual);
 
 return res.status(200).json({
       success: true,
-      monedas: entry.monedtas,
+      monedas: entry.monedas,
       tasas: entry.tasas,
       fechaVenezuela: entry.fechaVenezuela,
       ultima_actualizacion: entry.ultima_actualizacion,
