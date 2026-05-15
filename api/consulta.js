@@ -99,9 +99,14 @@ module.exports = async (req, res) => {
     String(horaVenezuela.getMonth() + 1).padStart(2, '0') + '-' + 
     String(horaVenezuela.getDate()).padStart(2, '0');
 
-  let historial = getHistorial();
-
-const entryHoy = historial.find(e => e.fecha === fechaActual);
+let historial = getHistorial();
+  
+  // Limpiar entradas con fecha futura (mayor a hoy en Venezuela)
+  historial = historial.filter(e => {
+    const fechaEntry = new Date(e.fecha);
+    const fechaHoy = new Date(fechaActual);
+    return fechaEntry <= fechaHoy;
+  });
 
   // Siempre hacer nueva petición para asegurar datos frescos
   const estrategias = [
