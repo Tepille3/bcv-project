@@ -93,9 +93,11 @@ module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Content-Type', 'application/json');
 
-const ahora = new Date();
+  const ahora = new Date();
   const horaVenezuela = new Date(ahora.toLocaleString('en-US', { timeZone: 'America/Caracas' }));
-  const fechaActual = horaVenezuela.toISOString().split('T')[0];
+  const fechaActual = horaVenezuela.getFullYear() + '-' + 
+    String(horaVenezuela.getMonth() + 1).padStart(2, '0') + '-' + 
+    String(horaVenezuela.getDate()).padStart(2, '0');
 
   let historial = getHistorial();
 
@@ -107,7 +109,7 @@ const ahora = new Date();
     if (fechaCache <= fechaHoy) {
       return res.status(200).json({
         success: true,
-        monedas: entryHoy.monedtas,
+        monedas: entryHoy.monedas,
         tasas: entryHoy.tasas,
         ultima_actualizacion: entryHoy.ultima_actualizacion,
         historial,
