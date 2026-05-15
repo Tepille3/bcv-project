@@ -1,7 +1,8 @@
 {
   "historial": [
     {
-      "fecha": "2026-05-15",
+      "fecha": "2026-05-14",
+      "fechaVenezuela": "14 de mayo de 2026",
       "monedas": {
         "USD": "515,18",
         "EUR": "601,45"
@@ -10,10 +11,10 @@
         "USD": 515.18,
         "EUR": 601.4520428
       },
-      "ultima_actualizacion": "BCV (www.bcv.org.ve) | Fecha valor: Viernes, 15 Mayo 2026"
+      "ultima_actualizacion": "BCV (www.bcv.org.ve) | Fecha BCV: Viernes, 15 Mayo 2026"
     },
     {
-      "fecha": "2026-05-14",
+      "fecha": "2026-05-15",
       "monedas": {
         "USD": "515,18",
         "EUR": "601,45"

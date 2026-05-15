@@ -101,26 +101,9 @@ module.exports = async (req, res) => {
 
   let historial = getHistorial();
 
-  const entryHoy = historial.find(e => e.fecha === fechaActual);
+const entryHoy = historial.find(e => e.fecha === fechaActual);
 
-  if (entryHoy) {
-    const fechaCache = new Date(entryHoy.fecha);
-    const fechaHoy = new Date(fechaActual);
-    if (fechaCache <= fechaHoy) {
-return res.status(200).json({
-        success: true,
-        monedas: entryHoy.monedas,
-        tasas: entryHoy.tasas,
-        fechaVenezuela: entryHoy.fechaVenezuela,
-        ultima_actualizacion: entryHoy.ultima_actualizacion,
-        historial,
-        desde_cache: true,
-      });
-    } else {
-      historial = historial.filter(e => e.fecha !== entryHoy.fecha);
-    }
-  }
-
+  // Siempre hacer nueva petición para asegurar datos frescos
   const estrategias = [
     { name: 'BCV (www.bcv.org.ve)', fn: fetchFromBCV },
     { name: 'BCV Backend', fn: fetchFromBCVBackend },
