@@ -100,9 +100,6 @@ const ahora = new Date();
     String(horaVenezuela.getDate()).padStart(2, '0');
 
   let historial = getHistorial();
-  
-  // Limpiar entradas con fecha futura (mayor a hoy en Venezuela)
-  historial = historial.filter(e => e.fecha <= fechaActual);
 
   // Verificar si ya tenemos datos para hoy en cache
   const entryHoy = historial.find(e => e.fecha === fechaActual);
@@ -127,71 +124,72 @@ const ahora = new Date();
   }
 
   if (resultado) {
-    // Calcular fecha Venezuela para HOY
+    const meses = { 'enero': '01', 'febrero': '02', 'marzo': '03', 'abril': '04', 'mayo': '05', 'junio': '06', 'julio': '07', 'agosto': '08', 'septiembre': '09', 'octubre': '10', 'noviembre': '11', 'diciembre': '12' };
     const mesesLargo = { '01': 'enero', '02': 'febrero', '03': 'marzo', '04': 'abril', '05': 'mayo', '06': 'junio', '07': 'julio', '08': 'agosto', '09': 'septiembre', '10': 'octubre', '11': 'noviembre', '12': 'diciembre' };
-    const fechaVenezuelaHoy = fechaActual.split('-')[2] + ' de ' + mesesLargo[fechaActual.split('-')[1]] + ' de ' + fechaActual.split('-')[0];
 
-    // Guardar entrada para HOY
-    const entryHoy = {
-      fecha: fechaActual,
-      fechaVenezuela: fechaVenezuelaHoy,
-      monedas: {
-        USD: formatRate(resultado.usd),
-        EUR: resultado.eur && resultado.eur > 0 ? formatRate(resultado.eur) : null,
-      },
-      tasas: {
-        USD: resultado.usd,
-        EUR: resultado.eur && resultado.eur > 0 ? resultado.eur : null,
-      },
-      ultima_actualizacion: fuente + ' | Fecha BCV: ' + (resultado.fecha || fechaVenezuelaHoy),
-    };
-    historial = pushToHistorial(historial, entryHoy);
+    let fechaGuardar = null;
+    let fechaVenezuelaGuardar = null;
 
-    // Si el BCV ya publicó la tasa de MAÑANA, guardarla también
+    // Extraer la fecha que el BCV asignó a esta tasa
+    let bcvDateProvided = false;
     if (resultado.fecha) {
-      const fechaBCV = resultado.fecha;
-      const matchFecha = fechaBCV.match(/(\d{1,2})\s+(\w+)\s+(\d{4})/);
+      const matchFecha = resultado.fecha.match(/(\d{1,2})\s+(\w+)\s+(\d{4})/);
       if (matchFecha) {
-        const meses = { 'enero': '01', 'febrero': '02', 'marzo': '03', 'abril': '04', 'mayo': '05', 'junio': '06', 'julio': '07', 'agosto': '08', 'septiembre': '09', 'octubre': '10', 'noviembre': '11', 'diciembre': '12' };
+        bcvDateProvided = true;
         const dia = matchFecha[1].padStart(2, '0');
         const mes = meses[matchFecha[2].toLowerCase()] || '01';
         const anio = matchFecha[3];
         const fechaKey = `${anio}-${mes}-${dia}`;
-        
-        // Solo guardar "mañana" si es maximo 2 dias adelante
-        const diffDias = (new Date(fechaKey) - new Date(fechaActual)) / (1000 * 60 * 60 * 24);
-        
-        if (fechaKey > fechaActual && diffDias <= 2) {
-          const mesesLargo = { '01': 'enero', '02': 'febrero', '03': 'marzo', '04': 'abril', '05': 'mayo', '06': 'junio', '07': 'julio', '08': 'agosto', '09': 'septiembre', '10': 'octubre', '11': 'noviembre', '12': 'diciembre' };
-          const entryManana = {
-            fecha: fechaKey,
-            fechaVenezuela: `${dia} de ${mesesLargo[mes]} de ${anio}`,
-            monedas: {
-              USD: formatRate(resultado.usd),
-              EUR: resultado.eur && resultado.eur > 0 ? formatRate(resultado.eur) : null,
-            },
-            tasas: {
-              USD: resultado.usd,
-              EUR: resultado.eur && resultado.eur > 0 ? resultado.eur : null,
-            },
-            ultima_actualizacion: fuente + ' | Fecha BCV: ' + resultado.fecha,
-          };
-          historial = pushToHistorial(historial, entryManana);
-          db.saveRate(fechaKey, entryManana.fechaVenezuela, resultado.usd, resultado.eur, fuente);
+        if (fechaKey === fechaActual) {
+          // El BCV publicó la tasa para HOY
+          fechaGuardar = fechaKey;
+          fechaVenezuelaGuardar = `${dia} de ${matchFecha[2]} de ${anio}`;
+        } else if (fechaKey > fechaActual) {
+          // El BCV publicó la tasa para una fecha futura
+          // Guardar SOLO para esa fecha futura, NO para hoy
+          fechaGuardar = null;
+          db.saveRate(fechaKey, `${dia} de ${matchFecha[2]} de ${anio}`, resultado.usd, resultado.eur, fuente);
         }
       }
     }
 
-    db.saveRate(fechaActual, fechaVenezuelaHoy, resultado.usd, resultado.eur, fuente);
+    // Solo usar fecha actual si NO hay fecha del BCV disponible
+    if (!fechaGuardar && !bcvDateProvided) {
+      fechaGuardar = fechaActual;
+      fechaVenezuelaGuardar = fechaActual.split('-')[2] + ' de ' + mesesLargo[fechaActual.split('-')[1]] + ' de ' + fechaActual.split('-')[0];
+    }
 
-    historial = getHistorial().filter(e => e.fecha <= fechaActual);
+    if (fechaGuardar === fechaActual) {
+      // Guardar entrada para HOY (solo si el BCV realmente publicó para hoy)
+      const entryHoy = {
+        fecha: fechaGuardar,
+        fechaVenezuela: fechaVenezuelaGuardar,
+        monedas: {
+          USD: formatRate(resultado.usd),
+          EUR: resultado.eur && resultado.eur > 0 ? formatRate(resultado.eur) : null,
+        },
+        tasas: {
+          USD: resultado.usd,
+          EUR: resultado.eur && resultado.eur > 0 ? resultado.eur : null,
+        },
+        ultima_actualizacion: fuente + ' | Fecha BCV: ' + (resultado.fecha || fechaVenezuelaGuardar),
+      };
+      historial = pushToHistorial(historial, entryHoy);
+      db.saveRate(fechaGuardar, fechaVenezuelaGuardar, resultado.usd, resultado.eur, fuente);
+    }
+
+    historial = getHistorial();
+
+    // Mostrar la última tasa válida (no futura) como principal
+    const latestValid = historial.find(e => e.fecha <= fechaActual) || historial[0];
+    const responseEntry = latestValid || { monedas: {}, tasas: {}, fechaVenezuela: '', ultima_actualizacion: 'Sin datos' };
 
     return res.status(200).json({
       success: true,
-      monedas: entryHoy.monedas,
-      tasas: entryHoy.tasas,
-      fechaVenezuela: entryHoy.fechaVenezuela,
-      ultima_actualizacion: entryHoy.ultima_actualizacion,
+      monedas: responseEntry.monedas,
+      tasas: responseEntry.tasas,
+      fechaVenezuela: responseEntry.fechaVenezuela,
+      ultima_actualizacion: responseEntry.ultima_actualizacion,
       historial,
       desde_cache: false,
     });

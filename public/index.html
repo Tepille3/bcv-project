@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Monitor BCV</title>
     <meta name="description" content="Tasa Oficial BCV — Conversor de Divisas Venezuela">
-    <meta name="theme-color" content="#004b93">
+    <meta name="theme-color" content="#004b93" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#6ba3ff" media="(prefers-color-scheme: dark)">
     <link rel="manifest" href="/manifest.json">
     <link rel="apple-touch-icon" href="/icon-192.svg">
     <style>
@@ -26,10 +27,14 @@
             --bg: #12121a;
             --card-bg: #1c1c28;
             --card-shadow: 0 2px 20px rgba(0,0,0,0.4);
-            --text: #e0e2f0;
-            --text-muted: #9094aa;
-            --input-bg: #23243a;
-            --border: #33355a;
+            --text: #eef0ff;
+            --text-muted: #a8accc;
+            --input-bg: #282a40;
+            --border: #3d3f60;
+            --blue: #6ba3ff;
+            --green: #4ade80;
+            --orange: #fb923c;
+            --red: #ef4444;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
@@ -78,8 +83,8 @@
             padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 600;
         }
         .badge.loading { background: rgba(255,193,7,0.15); color: #c8a000; }
-        .badge.success { background: rgba(46,158,90,0.12); color: var(--green); }
-        .badge.error { background: rgba(192,57,43,0.12); color: var(--red); }
+        .badge.success { background: rgba(74,222,128,0.12); color: var(--green); }
+        .badge.error { background: rgba(239,68,68,0.12); color: var(--red); }
         .badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
         .badge.loading::before { animation: pulse 1.2s infinite; }
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
@@ -201,6 +206,7 @@
             border-top-color: var(--blue); border-radius: 50%;
             animation: spin 0.7s linear infinite; display: inline-block;
         }
+        [data-theme="dark"] .spinner { border-color: rgba(255,255,255,0.15); border-top-color: var(--blue); }
         @keyframes spin { to { transform: rotate(360deg); } }
 
         .footer { margin-top: auto; padding-top: 20px; font-size: 0.7rem; color: var(--text-muted); text-align: center; }
@@ -342,48 +348,72 @@
             const selector = document.getElementById('date-selector');
             selector.innerHTML = '';
             
-            // Obtener la fecha de hoy en formato DD/MM/AAAA
+            // Obtener la fecha de hoy en formato YYYY-MM-DD
             const ahora = new Date();
             const horaVenezuela = new Date(ahora.toLocaleString('en-US', { timeZone: 'America/Caracas' }));
             const fechaHoy = String(horaVenezuela.getDate()).padStart(2, '0') + '/' + 
                            String(horaVenezuela.getMonth() + 1).padStart(2, '0') + '/' + 
                            horaVenezuela.getFullYear();
+            const fechaHoyKey = horaVenezuela.getFullYear() + '-' + 
+                              String(horaVenezuela.getMonth() + 1).padStart(2, '0') + '-' + 
+                              String(horaVenezuela.getDate()).padStart(2, '0');
             
-            // Encontrar el índice donde la fecha coincide con HOY en Venezuela
+            // Separar futuras de pasadas
+            const futuras = historial.filter(e => e.fecha > fechaHoyKey);
+            const pasadas = historial.filter(e => e.fecha <= fechaHoyKey);
+            
+            // Encontrar índice de Hoy en las pasadas
             let hoyIndex = -1;
-            for (let i = 0; i < historial.length; i++) {
-                const f = historial[i].fecha.split('-').reverse().join('/');
+            for (let i = 0; i < pasadas.length; i++) {
+                const f = pasadas[i].fecha.split('-').reverse().join('/');
                 if (f === fechaHoy) {
                     hoyIndex = i;
                     break;
                 }
             }
+            if (hoyIndex === -1) hoyIndex = 0;
             
-            // Si no encuentra "Hoy", usar el índice 1 por defecto
-            if (hoyIndex === -1) hoyIndex = 1;
+            // Construir botones
+            const entries = [];
             
-            // Determinar los índices relativos: Mañana, Hoy, Ayer, Hace 2 días
-            const indices = [hoyIndex - 1, hoyIndex, hoyIndex + 1, hoyIndex + 2];
-            const labels = ['Mañana', 'Hoy', 'Ayer', 'Hace 2 días'];
+            // Futuras primero → "Próxima tasa disponible"
+            futuras.forEach(e => {
+                const f = e.fecha.split('-').reverse().join('/');
+                entries.push({ label: 'Próxima tasa disponible (' + f + ')', entry: e, isHoy: false, isFuture: true });
+            });
             
-            for (let j = 0; j < 4; j++) {
-                const i = indices[j];
-                const btn = document.createElement('button');
-                
-                if (i >= 0 && i < historial.length) {
-                    const f = historial[i].fecha.split('-').reverse().join('/');
-                    const isHoy = (j === 1);
-                    btn.className = 'date-btn' + (i === selectedDateIndex ? ' active' : '') + (isHoy ? ' hoy-btn' : '');
-                    btn.textContent = labels[j] + ' (' + f + ')';
-                    btn.title = f;
-                    btn.onclick = () => loadDateEntry(i, j);
-                } else {
-                    btn.className = 'date-btn no-data';
-                    btn.textContent = labels[j];
-                    btn.title = 'Sin datos disponibles';
+            // Pasadas → Hoy, Ayer, Hace 2 días...
+            const labels = ['Hoy', 'Ayer', 'Hace 2 días'];
+            for (let i = 0; i < Math.min(pasadas.length, 3); i++) {
+                const idx = hoyIndex + i;
+                if (idx >= 0 && idx < pasadas.length) {
+                    const e = pasadas[idx];
+                    const f = e.fecha.split('-').reverse().join('/');
+                    const label = i === 0 ? 'Hoy' : (labels[i] || f);
+                    entries.push({ label: label + ' (' + f + ')', entry: e, isHoy: i === 0, isFuture: false });
                 }
+            }
+            
+            // Render buttons
+            entries.forEach((entry, j) => {
+                const btn = document.createElement('button');
+                const histIndex = historial.indexOf(entry.entry);
+                btn.className = 'date-btn' + (histIndex === selectedDateIndex ? ' active' : '') + (entry.isHoy ? ' hoy-btn' : '');
+                btn.textContent = entry.label;
+                btn.title = entry.entry.fecha.split('-').reverse().join('/');
+                btn.onclick = () => loadDateEntry(histIndex, j);
+                selector.appendChild(btn);
+            });
+            
+            // Rellenar hasta 4 botones si faltan
+            for (let i = entries.length; i < 4; i++) {
+                const btn = document.createElement('button');
+                btn.className = 'date-btn no-data';
+                btn.textContent = ['Próxima tasa disponible', 'Hoy', 'Ayer', 'Hace 2 días'][i];
+                btn.title = 'Sin datos disponibles';
                 selector.appendChild(btn);
             }
+            
             section.style.display = 'block';
         }
 
@@ -517,9 +547,13 @@ function updateUI(data) {
                     const fechaHoy = String(horaVenezuela.getDate()).padStart(2, '0') + '/' + 
                                    String(horaVenezuela.getMonth() + 1).padStart(2, '0') + '/' + 
                                    horaVenezuela.getFullYear();
+                    const fechaHoyKey = horaVenezuela.getFullYear() + '-' + 
+                                      String(horaVenezuela.getMonth() + 1).padStart(2, '0') + '-' + 
+                                      String(horaVenezuela.getDate()).padStart(2, '0');
                     
-                    // Encontrar el índice donde la fecha coincida con HOY en Venezuela
-                    let hoyIndex = 1; // Por defecto Hoy
+                    // Encontrar la última entrada válida (no futura) como "Hoy"
+                    let hoyIndex = -1;
+                    let btnPos = 0;
                     for (let i = 0; i < data.historial.length; i++) {
                         const f = data.historial[i].fecha.split('-').reverse().join('/');
                         if (f === fechaHoy) {
@@ -527,9 +561,21 @@ function updateUI(data) {
                             break;
                         }
                     }
+                    if (hoyIndex === -1) {
+                        // Buscar la más reciente <= hoy
+                        for (let i = 0; i < data.historial.length; i++) {
+                            if (data.historial[i].fecha <= fechaHoyKey) {
+                                hoyIndex = i;
+                                break;
+                            }
+                        }
+                        if (hoyIndex === -1) hoyIndex = 0;
+                    }
+                    // Si hay entradas futuras, "Hoy" está después de ellas en los botones
+                    btnPos = data.historial.filter(e => e.fecha > fechaHoyKey).length;
                     
                     selectedDateIndex = hoyIndex;
-                    loadDateEntry(selectedDateIndex, 1);
+                    loadDateEntry(selectedDateIndex, btnPos);
                     renderHistorial(data.historial);
                 }
             } else {
