@@ -158,7 +158,10 @@ const ahora = new Date();
         const anio = matchFecha[3];
         const fechaKey = `${anio}-${mes}-${dia}`;
         
-if (fechaKey > fechaActual) {
+        // Solo guardar "mañana" si es maximo 2 dias adelante
+        const diffDias = (new Date(fechaKey) - new Date(fechaActual)) / (1000 * 60 * 60 * 24);
+        
+        if (fechaKey > fechaActual && diffDias <= 2) {
           const mesesLargo = { '01': 'enero', '02': 'febrero', '03': 'marzo', '04': 'abril', '05': 'mayo', '06': 'junio', '07': 'julio', '08': 'agosto', '09': 'septiembre', '10': 'octubre', '11': 'noviembre', '12': 'diciembre' };
           const entryManana = {
             fecha: fechaKey,
@@ -181,7 +184,7 @@ if (fechaKey > fechaActual) {
 
     db.saveRate(fechaActual, fechaVenezuelaHoy, resultado.usd, resultado.eur, fuente);
 
-    historial = getHistorial();
+    historial = getHistorial().filter(e => e.fecha <= fechaActual);
 
     return res.status(200).json({
       success: true,

@@ -254,14 +254,14 @@
             <div class="calc-field">
                 <label id="label-div">Dólares</label>
                 <div class="calc-input-wrap" id="wrap-div">
-                    <input type="text" id="input-div" placeholder="0,00" inputmode="numeric" oninput="onInputChange('div')" />
+                    <input type="text" id="input-div" placeholder="0,00" inputmode="numeric" onkeydown="onKeyDown(event, 'div')" />
                     <span class="currency-badge" id="badge-div">USD</span>
                 </div>
             </div>
             <div class="calc-field">
                 <label>Bolívares</label>
                 <div class="calc-input-wrap" id="wrap-bs">
-                    <input type="text" id="input-bs" placeholder="0,00" inputmode="numeric" oninput="onInputChange('bs')" />
+                    <input type="text" id="input-bs" placeholder="0,00" inputmode="numeric" onkeydown="onKeyDown(event, 'bs')" />
                     <span class="currency-badge" id="badge-bs">Bs</span>
                 </div>
             </div>
@@ -410,28 +410,70 @@
             return parts.join(',');
         }
 
-        function onInputChange(which) {
-            activeField = which;
-            const rate = allRates[selectedCurrency];
-            if (!rate) return;
+function setFormatted(input, raw) {
+            if (!raw || raw === '') {
+                input.value = '';
+                return;
+            }
+            while (raw.length < 3) {
+                raw = '0' + raw;
+            }
+            const dec = raw.slice(-2);
+            const intPart = raw.slice(0, -2).replace(/^0+/, '') || '0';
+            input.value = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ',' + dec;
+        }
 
+        function updateOtherField(which) {
             const bsInput = document.getElementById('input-bs');
             const divInput = document.getElementById('input-div');
-
-            if (which === 'bs') {
-                const bsVal = parseFloat(bsInput.value.replace(/\s/g, '').replace(/\./g, '').replace(',', '.'));
-                if (!isNaN(bsVal) && bsVal !== 0) {
-                    divInput.value = fmtNum(bsVal / rate);
-                } else {
-                    divInput.value = '';
-                }
+            const input = which === 'bs' ? bsInput : divInput;
+            const other = which === 'bs' ? divInput : bsInput;
+            
+            const raw = input.value.replace(/[^\d]/g, '');
+            const cents = parseInt(raw) || 0;
+            const val = cents / 100;
+            const rate = allRates[selectedCurrency];
+            
+            if (val > 0 && rate) {
+                const otherVal = which === 'bs' ? val / rate : val * rate;
+                const parts = otherVal.toFixed(2).split('.');
+                parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+                other.value = parts.join(',');
             } else {
-                const divVal = parseFloat(divInput.value.replace(/\s/g, '').replace(/\./g, '').replace(',', '.'));
-                if (!isNaN(divVal) && divVal !== 0) {
-                    bsInput.value = fmtNum(divVal * rate);
-                } else {
-                    bsInput.value = '';
-                }
+                other.value = '';
+            }
+        }
+
+        function onKeyDown(e, which) {
+            if (e.ctrlKey || e.altKey || e.metaKey) return;
+            
+            const numKeys = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+            const controlKeys = ['Backspace', 'Tab', 'ArrowLeft', 'ArrowRight'];
+            
+            if (![...numKeys, ...controlKeys].includes(e.key)) {
+                return;
+            }
+            
+            activeField = which;
+            const bsInput = document.getElementById('input-bs');
+            const divInput = document.getElementById('input-div');
+            const input = which === 'bs' ? bsInput : divInput;
+            
+            if (numKeys.includes(e.key)) {
+                e.preventDefault();
+                let raw = input.value.replace(/[^\d]/g, '');
+                raw += e.key;
+                if (raw.length > 13) raw = raw.slice(1); // remove leftmost digit to cap
+                setFormatted(input, raw);
+                updateOtherField(which);
+            }
+            
+            if (e.key === 'Backspace') {
+                e.preventDefault();
+                let raw = input.value.replace(/[^\d]/g, '');
+                raw = raw.slice(0, -1);
+                setFormatted(input, raw);
+                updateOtherField(which);
             }
         }
 
