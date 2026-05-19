@@ -5,8 +5,8 @@ const db = require('./db');
 
 const BCV_URL = 'https://www.bcv.org.ve/';
 
-function getHistorial() {
-  const rates = db.getRates();
+async function getHistorial() {
+  const rates = await db.getRates();
   return rates.map(r => ({
     fecha: r.date,
     fechaVenezuela: r.fechaVenezuela,
@@ -99,7 +99,7 @@ const ahora = new Date();
     String(horaVenezuela.getMonth() + 1).padStart(2, '0') + '-' + 
     String(horaVenezuela.getDate()).padStart(2, '0');
 
-  let historial = getHistorial();
+  let historial = await getHistorial();
 
   // Verificar si ya tenemos datos para hoy en cache
   const entryHoy = historial.find(e => e.fecha === fechaActual);
@@ -148,7 +148,7 @@ const ahora = new Date();
           // El BCV publicó la tasa para una fecha futura
           // Guardar SOLO para esa fecha futura, NO para hoy
           fechaGuardar = null;
-          db.saveRate(fechaKey, `${dia} de ${matchFecha[2]} de ${anio}`, resultado.usd, resultado.eur, fuente);
+          await db.saveRate(fechaKey, `${dia} de ${matchFecha[2]} de ${anio}`, resultado.usd, resultado.eur, fuente);
         }
       }
     }
@@ -175,10 +175,10 @@ const ahora = new Date();
         ultima_actualizacion: fuente + ' | Fecha BCV: ' + (resultado.fecha || fechaVenezuelaGuardar),
       };
       historial = pushToHistorial(historial, entryHoy);
-      db.saveRate(fechaGuardar, fechaVenezuelaGuardar, resultado.usd, resultado.eur, fuente);
+      await db.saveRate(fechaGuardar, fechaVenezuelaGuardar, resultado.usd, resultado.eur, fuente);
     }
 
-    historial = getHistorial();
+    historial = await getHistorial();
 
     // Mostrar la última tasa válida (no futura) como principal
     const latestValid = historial.find(e => e.fecha <= fechaActual) || historial[0];
