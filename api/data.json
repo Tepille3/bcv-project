@@ -1,12 +1,20 @@
 {
   "rates": [
     {
+      "date": "2026-05-21",
+      "fechaVenezuela": "21 de Mayo de 2026",
+      "usd": 523.675,
+      "eur": 609.34299325,
+      "fuente": "BCV (www.bcv.org.ve)",
+      "updatedAt": "2026-05-20T22:32:28.677Z"
+    },
+    {
       "date": "2026-05-20",
       "fechaVenezuela": "20 de Mayo de 2026",
       "usd": 520.9142,
       "eur": 604.15628916,
       "fuente": "BCV (www.bcv.org.ve)",
-      "updatedAt": "2026-05-19T22:31:02.032Z"
+      "updatedAt": "2026-05-19T22:38:54.941Z"
     },
     {
       "date": "2026-05-19",
