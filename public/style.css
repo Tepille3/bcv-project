@@ -59,7 +59,7 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 24px 16px 60px;
+    padding: 16px 16px 32px;
     color: var(--text);
     transition: background-color 0.4s ease, color 0.4s ease;
     overflow-x: hidden;
@@ -106,7 +106,7 @@ body::after {
     max-width: 460px;
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: 8px;
     position: relative;
     z-index: 1;
 }
@@ -296,7 +296,7 @@ body::after {
    RATE HERO
    ========================================================= */
 .rate-hero {
-    padding: 32px 24px 28px;
+    padding: 20px 24px 16px;
     text-align: center;
     position: relative;
 }
@@ -400,7 +400,7 @@ body::after {
    ========================================================= */
 .historial {
     border-top: 1px solid var(--divider);
-    padding: 16px 20px 4px;
+    padding: 10px 16px 2px;
 }
 
 .historial-label {
@@ -427,23 +427,26 @@ body::after {
     display: flex;
     gap: 6px;
     flex-wrap: nowrap;
-    padding-bottom: 16px;
+    padding-bottom: 10px;
 }
 
 .date-btn {
     flex: 1;
     min-width: 0;
-    padding: 8px 10px;
+    padding: 9px 8px;
     border: 1.5px solid var(--input-border);
     border-radius: 14px;
     background: var(--input-bg);
     color: var(--text-muted);
-    font-size: 0.65rem;
+    font-size: 0.75rem;
     font-weight: 700;
     cursor: pointer;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    overflow: visible;
+    text-overflow: clip;
+    white-space: normal;
+    word-break: break-word;
+    line-height: 1.35;
+    min-height: 42px;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     font-family: inherit;
     text-align: center;
@@ -492,8 +495,8 @@ body::after {
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 18px 20px 0;
-    margin-bottom: 16px;
+    padding: 14px 20px 0;
+    margin-bottom: 10px;
 }
 
 .converter-header-icon {
@@ -532,7 +535,7 @@ body::after {
     display: flex;
     flex-direction: column;
     gap: 0;
-    padding: 0 20px 20px;
+    padding: 0 20px 14px;
 }
 
 /* Swap icon row */
@@ -697,6 +700,8 @@ body::after {
    RESPONSIVE
    ========================================================= */
 @media (max-width: 360px) {
-    .date-btn { font-size: 0.6rem; padding: 7px 6px; }
-    .rate-value { font-size: 2.8rem; }
+    .date-btn { font-size: 0.68rem; padding: 8px 6px; }
+    .rate-value { font-size: 2.6rem; }
+    .rate-hero { padding: 14px 16px 12px; }
+    body { padding: 10px 12px 24px; }
 }
