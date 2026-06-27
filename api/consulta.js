@@ -123,42 +123,63 @@ const ahora = new Date();
     } catch (_) {}
   }
 
-    if (resultado) {
-      const meses = { 'enero': '01', 'febrero': '02', 'marzo': '03', 'abril': '04', 'mayo': '05', 'junio': '06', 'julio': '07', 'agosto': '08', 'septiembre': '09', 'octubre': '10', 'noviembre': '11', 'diciembre': '12' };
-      const mesesLargo = { '01': 'enero', '02': 'febrero', '03': 'marzo', '04': 'abril', '05': 'mayo', '06': 'junio', '07': 'julio', '08': 'agosto', '09': 'septiembre', '10': 'octubre', '11': 'noviembre', '12': 'diciembre' };
+  if (!resultado) {
+    const latestRate = await db.getLatestRate();
+    if (latestRate) {
+      resultado = {
+        usd: latestRate.usd,
+        eur: latestRate.eur,
+        fecha: latestRate.fechaVenezuela,
+        fromCache: true,
+        fechaKey: latestRate.date,
+        fechaVenezuela: latestRate.fechaVenezuela,
+      };
+      fuente = latestRate.fuente + ' (Caché)';
+    }
+  }
 
-      let fechaGuardar = null;
-      let fechaVenezuelaGuardar = null;
+  if (resultado) {
+    const meses = { 'enero': '01', 'febrero': '02', 'marzo': '03', 'abril': '04', 'mayo': '05', 'junio': '06', 'julio': '07', 'agosto': '08', 'septiembre': '09', 'octubre': '10', 'noviembre': '11', 'diciembre': '12' };
+    const mesesLargo = { '01': 'enero', '02': 'febrero', '03': 'marzo', '04': 'abril', '05': 'mayo', '06': 'junio', '07': 'julio', '08': 'agosto', '09': 'septiembre', '10': 'octubre', '11': 'noviembre', '12': 'diciembre' };
 
-      // Extraer la fecha que el BCV asignó a esta tasa
-      let bcvDateProvided = false;
-      if (resultado.fecha) {
-        const matchFecha = resultado.fecha.match(/(\d{1,2})\s+(\w+)\s+(\d{4})/);
-        if (matchFecha) {
-          bcvDateProvided = true;
-          const dia = matchFecha[1].padStart(2, '0');
-          const mes = meses[matchFecha[2].toLowerCase()] || '01';
-          const anio = matchFecha[3];
-          const fechaKey = `${anio}-${mes}-${dia}`;
-          if (fechaKey === fechaActual) {
-            // El BCV publicó la tasa para HOY
-            fechaGuardar = fechaKey;
-            fechaVenezuelaGuardar = `${dia} de ${matchFecha[2]} de ${anio}`;
-          } else if (fechaKey > fechaActual) {
-            // El BCV publicó la tasa para una fecha futura
-            // Guardar SOLO para esa fecha futura, NO para hoy
-            fechaGuardar = fechaKey; // usar la fecha futura para construir entry
-            fechaVenezuelaGuardar = `${dia} de ${matchFecha[2]} de ${anio}`;
-            await db.saveRate(fechaKey, fechaVenezuelaGuardar, resultado.usd, resultado.eur, fuente);
-          }
+    let fechaGuardar = null;
+    let fechaVenezuelaGuardar = null;
+
+    // Extraer la fecha que el BCV asignó a esta tasa
+    let bcvDateProvided = false;
+    if (resultado.fecha && !resultado.fromCache) {
+      const matchFecha = resultado.fecha.match(/(\d{1,2})\s+(\w+)\s+(\d{4})/);
+      if (matchFecha) {
+        bcvDateProvided = true;
+        const dia = matchFecha[1].padStart(2, '0');
+        const mes = meses[matchFecha[2].toLowerCase()] || '01';
+        const anio = matchFecha[3];
+        const fechaKey = `${anio}-${mes}-${dia}`;
+        if (fechaKey === fechaActual) {
+          // El BCV publicó la tasa para HOY
+          fechaGuardar = fechaKey;
+          fechaVenezuelaGuardar = `${dia} de ${matchFecha[2]} de ${anio}`;
+        } else if (fechaKey > fechaActual) {
+          // El BCV publicó la tasa para una fecha futura
+          // Guardar SOLO para esa fecha futura, NO para hoy
+          fechaGuardar = fechaKey; // usar la fecha futura para construir entry
+          fechaVenezuelaGuardar = `${dia} de ${matchFecha[2]} de ${anio}`;
+          await db.saveRate(fechaKey, fechaVenezuelaGuardar, resultado.usd, resultado.eur, fuente);
         }
       }
+    }
 
-      // Solo usar fecha actual si NO hay fecha del BCV disponible
-      if (!fechaGuardar && !bcvDateProvided) {
-        fechaGuardar = fechaActual;
-        fechaVenezuelaGuardar = fechaActual.split('-')[2] + ' de ' + mesesLargo[fechaActual.split('-')[1]] + ' de ' + fechaActual.split('-')[0];
-      }
+    if (resultado.fromCache) {
+      fechaGuardar = resultado.fechaKey;
+      fechaVenezuelaGuardar = resultado.fechaVenezuela;
+      bcvDateProvided = true;
+    }
+
+    // Solo usar fecha actual si NO hay fecha del BCV disponible
+    if (!fechaGuardar && !bcvDateProvided) {
+      fechaGuardar = fechaActual;
+      fechaVenezuelaGuardar = fechaActual.split('-')[2] + ' de ' + mesesLargo[fechaActual.split('-')[1]] + ' de ' + fechaActual.split('-')[0];
+    }
 
       // Construir entrada con los datos recién obtenidos del BCV
       const bcvEntry = {
