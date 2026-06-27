@@ -4,10 +4,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Monitor BCV</title>
-    <meta name="description" content="Tasa Oficial BCV — Conversor de Divisas Venezuela">
-    <meta name="theme-color" content="#090b11" media="(prefers-color-scheme: dark)">
-    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+    <title>Monitor BCV — Tasa Oficial</title>
+    <meta name="description" content="Tasa Oficial BCV — Conversor de Divisas Venezuela en tiempo real">
+    <meta name="theme-color" content="#070b14" media="(prefers-color-scheme: dark)">
+    <meta name="theme-color" content="#f0f4ff" media="(prefers-color-scheme: light)">
     <link rel="manifest" href="/manifest.json">
     <link rel="apple-touch-icon" href="/icon-192.svg">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -16,70 +16,131 @@
 </head>
 
 <body data-theme="dark">
-    <div class="top-bar">
-        <div class="app-title">
-            <h1>Monitor BCV</h1>
-            <span>Banco Central de Venezuela</span>
-        </div>
-        <button class="theme-toggle" onclick="toggleTheme()" aria-label="Cambiar tema"></button>
-    </div>
 
-    <div class="card">
-        <div class="card-top">
-            <div id="badge" class="badge loading">
-                <span id="badge-icon"></span>
-                <span id="badge-text">Conectando...</span>
-            </div>
-            <select class="currency-select" id="currencySelect" onchange="onCurrencyChange()">
-                <option value="USD">USD — Dólar</option>
-                <option value="EUR">EUR — Euro</option>
-            </select>
-        </div>
+    <div class="wrapper">
 
-        <div class="rate-display">
-            <div class="rate-currency-row">
-                <span class="rate-flag" id="rate-flag">💵</span>
-                <span class="rate-code" id="rate-code">USD</span>
-            </div>
-            <div class="rate-value" id="main-rate">...</div>
-            <div class="rate-unit">Bs por <span id="rate-unit-label">USD</span></div>
-        </div>
-
-        <div class="fecha-valor">
-            <span>Fecha Valor:</span>
-            <strong id="fecha-val">—</strong>
-        </div>
-
-        <div class="historial" id="historial-section" style="display:none">
-            <h4>Seleccionar fecha</h4>
-            <div class="date-selector" id="date-selector"></div>
-            <div id="historial-list"></div>
-        </div>
-    </div>
-
-    <div class="card calc-card">
-        <h3>Conversor</h3>
-        <div class="calc-fields">
-            <div class="calc-field">
-                <label id="label-div">Dólares</label>
-                <div class="calc-input-wrap" id="wrap-div">
-                    <input type="text" id="input-div" placeholder="0,00" inputmode="numeric"
-                        onkeydown="onKeyDown(event, 'div')" />
-                    <span class="currency-badge" id="badge-div">USD</span>
+        <!-- ===================== TOP BAR ===================== -->
+        <div class="top-bar">
+            <div class="brand">
+                <div class="brand-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                        <polyline points="9 22 9 12 15 12 15 22" fill="rgba(255,255,255,0.4)" stroke="none"/>
+                    </svg>
+                </div>
+                <div class="brand-text">
+                    <h1>Monitor BCV</h1>
+                    <span>Banco Central de Venezuela</span>
                 </div>
             </div>
-            <div class="calc-field">
-                <label>Bolívares</label>
-                <div class="calc-input-wrap" id="wrap-bs">
-                    <input type="text" id="input-bs" placeholder="0,00" inputmode="numeric"
-                        onkeydown="onKeyDown(event, 'bs')" />
-                    <span class="currency-badge" id="badge-bs">Bs</span>
+            <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" aria-label="Cambiar tema"></button>
+        </div>
+
+        <!-- ===================== RATE CARD ===================== -->
+        <div class="card rate-card">
+
+            <!-- Header -->
+            <div class="rate-card-header">
+                <div id="badge" class="badge loading">
+                    <span id="badge-icon"></span>
+                    <span id="badge-text">Conectando...</span>
+                </div>
+                <select class="currency-select" id="currencySelect" onchange="onCurrencyChange()">
+                    <option value="USD">💵 USD — Dólar</option>
+                    <option value="EUR">💶 EUR — Euro</option>
+                </select>
+            </div>
+
+            <!-- Rate hero -->
+            <div class="rate-hero">
+                <div class="rate-currency-pill">
+                    <span class="rate-flag" id="rate-flag">💵</span>
+                    <span class="rate-code" id="rate-code">USD</span>
+                </div>
+                <div class="rate-value" id="main-rate">—</div>
+                <div class="rate-unit">Bolívares por <span id="rate-unit-label">USD</span></div>
+            </div>
+
+            <!-- Meta / fecha -->
+            <div class="meta-row">
+                <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                    <line x1="16" y1="2" x2="16" y2="6"/>
+                    <line x1="8" y1="2" x2="8" y2="6"/>
+                    <line x1="3" y1="10" x2="21" y2="10"/>
+                </svg>
+                <span>Fecha Valor:</span>
+                <strong id="fecha-val">—</strong>
+            </div>
+
+            <!-- Historial date selector -->
+            <div class="historial" id="historial-section" style="display:none">
+                <div class="historial-label">Historial</div>
+                <div class="date-selector" id="date-selector"></div>
+            </div>
+        </div>
+
+        <!-- ===================== CONVERTER CARD ===================== -->
+        <div class="card">
+            <div class="converter-header">
+                <div class="converter-header-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="17 1 21 5 17 9"/>
+                        <path d="M3 11V9a4 4 0 0 1 4-4h14"/>
+                        <polyline points="7 23 3 19 7 15"/>
+                        <path d="M21 13v2a4 4 0 0 1-4 4H3"/>
+                    </svg>
+                </div>
+                <div>
+                    <h3>Conversor</h3>
+                    <p>Conversión en tiempo real</p>
+                </div>
+            </div>
+
+            <div class="calc-fields">
+                <!-- Foreign currency field -->
+                <div class="calc-field">
+                    <label>
+                        <span class="field-dot"></span>
+                        <span id="label-div">Dólares</span>
+                    </label>
+                    <div class="calc-input-wrap" id="wrap-div">
+                        <input type="text" id="input-div" placeholder="0,00" inputmode="numeric"
+                               onkeydown="onKeyDown(event, 'div')" autocomplete="off" />
+                        <span class="currency-badge" id="badge-div">USD</span>
+                    </div>
+                </div>
+
+                <!-- Swap divider -->
+                <div class="swap-row" aria-hidden="true">
+                    <div class="swap-line"></div>
+                    <div class="swap-icon">
+                        <svg viewBox="0 0 24 24" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" y1="5" x2="12" y2="19"/>
+                            <polyline points="19 12 12 19 5 12"/>
+                        </svg>
+                    </div>
+                    <div class="swap-line"></div>
+                </div>
+
+                <!-- Bolívares field -->
+                <div class="calc-field">
+                    <label>
+                        <span class="field-dot bs-dot"></span>
+                        Bolívares
+                    </label>
+                    <div class="calc-input-wrap" id="wrap-bs">
+                        <input type="text" id="input-bs" placeholder="0,00" inputmode="numeric"
+                               onkeydown="onKeyDown(event, 'bs')" autocomplete="off" />
+                        <span class="currency-badge bs-badge" id="badge-bs">Bs</span>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <div class="footer">Fuente: bcv.org.ve · Actualización automática</div>
+        <!-- Footer -->
+        <div class="footer">Fuente: bcv.org.ve &nbsp;·&nbsp; Actualización automática cada 5 minutos</div>
+    </div>
 
     <script>
         let allRates = { USD: null, EUR: null };
@@ -88,7 +149,7 @@
         let activeField = null;
         let pollTimer = null;
         let historialData = [];
-        let selectedDateIndex = 1; // Por defectoHoy
+        let selectedDateIndex = 1;
 
         function toggleTheme() {
             const isDark = document.body.dataset.theme === 'dark';
@@ -98,15 +159,14 @@
 
         function loadDateEntry(index, btnIndex) {
             if (!historialData[index]) return;
-
-            // Verificar si el índice es el de hoy
+            
             const ahora = new Date();
             const horaVenezuela = new Date(ahora.toLocaleString('en-US', { timeZone: 'America/Caracas' }));
-            const fechaHoy = String(horaVenezuela.getDate()).padStart(2, '0') + '/' +
-                String(horaVenezuela.getMonth() + 1).padStart(2, '0') + '/' +
-                horaVenezuela.getFullYear();
+            const fechaHoy = String(horaVenezuela.getDate()).padStart(2, '0') + '/' + 
+                           String(horaVenezuela.getMonth() + 1).padStart(2, '0') + '/' + 
+                           horaVenezuela.getFullYear();
             const fechaEntry = historialData[index].fecha.split('-').reverse().join('/');
-
+            
             selectedDateIndex = index;
             const entry = historialData[index];
             Object.keys(entry.monedas).forEach(k => {
@@ -117,17 +177,15 @@
                     }
                 }
             });
-
-            const fechaTxt = entry.fechaVenezuela || entry.fecha.split('-').reverse().join('/');
-            // Formatear como DD/MM/AAAA
+            
             const fechaParts = (entry.fechaVenezuela || '').split(' de ');
             let fechaDisplay = entry.fecha.split('-').reverse().join('/');
             if (fechaParts.length === 3) {
-                const meses = { 'enero': '01', 'febrero': '02', 'marzo': '03', 'abril': '04', 'mayo': '05', 'junio': '06', 'julio': '07', 'agosto': '08', 'septiembre': '09', 'octubre': '10', 'noviembre': '11', 'diciembre': '12' };
-                const dia = fechaParts[0].padStart(2, '0');
-                const mes = meses[fechaParts[1].toLowerCase()] || '01';
-                const anio = fechaParts[2];
-                fechaDisplay = dia + '/' + mes + '/' + anio;
+              const meses = { 'enero': '01', 'febrero': '02', 'marzo': '03', 'abril': '04', 'mayo': '05', 'junio': '06', 'julio': '07', 'agosto': '08', 'septiembre': '09', 'octubre': '10', 'noviembre': '11', 'diciembre': '12' };
+              const dia = fechaParts[0].padStart(2, '0');
+              const mes = meses[fechaParts[1].toLowerCase()] || '01';
+              const anio = fechaParts[2];
+              fechaDisplay = dia + '/' + mes + '/' + anio;
             }
             document.getElementById('fecha-val').textContent = fechaDisplay;
             document.getElementById('input-bs').value = '';
@@ -152,50 +210,43 @@
             const section = document.getElementById('historial-section');
             const selector = document.getElementById('date-selector');
             selector.innerHTML = '';
-
+            
             const ahora = new Date();
             const horaVenezuela = new Date(ahora.toLocaleString('en-US', { timeZone: 'America/Caracas' }));
-            const fechaHoyKey = horaVenezuela.getFullYear() + '-' +
-                String(horaVenezuela.getMonth() + 1).padStart(2, '0') + '-' +
-                String(horaVenezuela.getDate()).padStart(2, '0');
-
+            const fechaHoyKey = horaVenezuela.getFullYear() + '-' + 
+                              String(horaVenezuela.getMonth() + 1).padStart(2, '0') + '-' + 
+                              String(horaVenezuela.getDate()).padStart(2, '0');
+            
             const diasSemana = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
-
+            
             function formatearFecha(fechaStr) {
                 const partes = fechaStr.split('-');
                 const d = new Date(partes[0], partes[1] - 1, partes[2]);
                 return diasSemana[d.getDay()] + ' · ' + partes[2] + '/' + partes[1];
             }
-
-            // Separar futuras de pasadas
+            
             const futuras = historial.filter(e => e.fecha > fechaHoyKey);
             const pasadas = historial.filter(e => e.fecha <= fechaHoyKey);
-
-            // Construir botones
+            
             const entries = [];
-
-            // Futuras primero → "Próxima tasa disponible"
             futuras.forEach(e => {
                 entries.push({ label: 'Próxima (' + formatearFecha(e.fecha) + ')', entry: e, isHoy: false, isFuture: true });
             });
-
-            // Pasadas
             for (let i = 0; i < Math.min(pasadas.length, 3); i++) {
                 const e = pasadas[i];
                 entries.push({ label: formatearFecha(e.fecha), entry: e, isHoy: i === 0, isFuture: false });
             }
-
-            // Render buttons
+            
             entries.forEach((entry, j) => {
                 const btn = document.createElement('button');
                 const histIndex = historial.indexOf(entry.entry);
-                btn.className = 'date-btn' + (histIndex === selectedDateIndex ? ' active' : '') + (entry.isHoy ? ' hoy-btn' : '');
+                btn.className = 'date-btn' + (histIndex === selectedDateIndex ? ' active' : '') + (entry.isHoy ? ' hoy-btn' : '') + (entry.isFuture ? ' future-btn' : '');
                 btn.textContent = entry.label;
                 btn.title = entry.entry.fecha.split('-').reverse().join('/');
                 btn.onclick = () => loadDateEntry(histIndex, j);
                 selector.appendChild(btn);
             });
-
+            
             section.style.display = 'block';
         }
 
@@ -205,8 +256,9 @@
             document.getElementById('rate-flag').textContent = isEuro ? '💶' : '💵';
             document.getElementById('rate-code').textContent = selectedCurrency;
             document.getElementById('rate-unit-label').textContent = selectedCurrency;
-            document.getElementById('main-rate').className = 'rate-value' + (isEuro ? ' euro-color' : '');
-            document.getElementById('main-rate').textContent = allRatesDisplay[selectedCurrency] || '—';
+            const rateEl = document.getElementById('main-rate');
+            rateEl.className = 'rate-value' + (isEuro ? ' euro-color' : '');
+            rateEl.textContent = allRatesDisplay[selectedCurrency] || '—';
             document.getElementById('label-div').textContent = isEuro ? 'Euros' : 'Dólares';
             document.getElementById('badge-div').textContent = selectedCurrency;
             document.getElementById('badge-div').className = 'currency-badge' + (isEuro ? ' euro' : '');
@@ -223,13 +275,8 @@
         }
 
         function setFormatted(input, raw) {
-            if (!raw || raw === '') {
-                input.value = '';
-                return;
-            }
-            while (raw.length < 3) {
-                raw = '0' + raw;
-            }
+            if (!raw || raw === '') { input.value = ''; return; }
+            while (raw.length < 3) raw = '0' + raw;
             const dec = raw.slice(-2);
             const intPart = raw.slice(0, -2).replace(/^0+/, '') || '0';
             input.value = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ',' + dec;
@@ -240,12 +287,10 @@
             const divInput = document.getElementById('input-div');
             const input = which === 'bs' ? bsInput : divInput;
             const other = which === 'bs' ? divInput : bsInput;
-
             const raw = input.value.replace(/[^\d]/g, '');
             const cents = parseInt(raw) || 0;
             const val = cents / 100;
             const rate = allRates[selectedCurrency];
-
             if (val > 0 && rate) {
                 const otherVal = which === 'bs' ? val / rate : val * rate;
                 const parts = otherVal.toFixed(2).split('.');
@@ -258,28 +303,21 @@
 
         function onKeyDown(e, which) {
             if (e.ctrlKey || e.altKey || e.metaKey) return;
-
-            const numKeys = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
-            const controlKeys = ['Backspace', 'Tab', 'ArrowLeft', 'ArrowRight'];
-
-            if (![...numKeys, ...controlKeys].includes(e.key)) {
-                return;
-            }
-
+            const numKeys = ['0','1','2','3','4','5','6','7','8','9'];
+            const controlKeys = ['Backspace','Tab','ArrowLeft','ArrowRight'];
+            if (![...numKeys, ...controlKeys].includes(e.key)) return;
             activeField = which;
             const bsInput = document.getElementById('input-bs');
             const divInput = document.getElementById('input-div');
             const input = which === 'bs' ? bsInput : divInput;
-
             if (numKeys.includes(e.key)) {
                 e.preventDefault();
                 let raw = input.value.replace(/[^\d]/g, '');
                 raw += e.key;
-                if (raw.length > 13) raw = raw.slice(1); // remove leftmost digit to cap
+                if (raw.length > 13) raw = raw.slice(1);
                 setFormatted(input, raw);
                 updateOtherField(which);
             }
-
             if (e.key === 'Backspace') {
                 e.preventDefault();
                 let raw = input.value.replace(/[^\d]/g, '');
@@ -292,8 +330,7 @@
         function updateUI(data) {
             const badge = document.getElementById('badge');
             document.getElementById('badge-icon').innerHTML = '';
-
-            // Si la API indica fallo pero nos provee un historial, cargamos la última entrada del historial como fallback
+            
             let fallbackUsed = false;
             if (!data.success && data.historial && data.historial.length >= 1) {
                 const latestHist = data.historial[0];
@@ -328,55 +365,44 @@
                 });
                 onCurrencyChange();
                 if (data.fechaVenezuela) {
-                    // Convertir a formato DD/MM/AAAA
-                    const fechaParts = data.fechaVenezuela.split(' de ');
-                    if (fechaParts.length === 3) {
-                        const meses = { 'enero': '01', 'febrero': '02', 'marzo': '03', 'abril': '04', 'mayo': '05', 'junio': '06', 'julio': '07', 'agosto': '08', 'septiembre': '09', 'octubre': '10', 'noviembre': '11', 'diciembre': '12' };
-                        const dia = fechaParts[0].padStart(2, '0');
-                        const mes = meses[fechaParts[1].toLowerCase()] || '01';
-                        const anio = fechaParts[2];
-                        document.getElementById('fecha-val').textContent = dia + '/' + mes + '/' + anio;
-                    } else {
-                        document.getElementById('fecha-val').textContent = data.fechaVenezuela;
-                    }
+                  const fechaParts = data.fechaVenezuela.split(' de ');
+                  if (fechaParts.length === 3) {
+                    const meses = { 'enero': '01', 'febrero': '02', 'marzo': '03', 'abril': '04', 'mayo': '05', 'junio': '06', 'julio': '07', 'agosto': '08', 'septiembre': '09', 'octubre': '10', 'noviembre': '11', 'diciembre': '12' };
+                    const dia = fechaParts[0].padStart(2, '0');
+                    const mes = meses[fechaParts[1].toLowerCase()] || '01';
+                    const anio = fechaParts[2];
+                    document.getElementById('fecha-val').textContent = dia + '/' + mes + '/' + anio;
+                  } else {
+                    document.getElementById('fecha-val').textContent = data.fechaVenezuela;
+                  }
                 } else if (data.ultima_actualizacion) {
-                    const txt = data.ultima_actualizacion.replace(/BCV.*\|\s*/, '').replace(/Fecha valor:\s*/i, '').trim();
-                    document.getElementById('fecha-val').textContent = txt;
+                  const txt = data.ultima_actualizacion.replace(/BCV.*\|\s*/, '').replace(/Fecha valor:\s*/i, '').trim();
+                  document.getElementById('fecha-val').textContent = txt;
                 }
                 if (data.historial && data.historial.length >= 1) {
-                    // Calcular la fecha de HOY en Venezuela
                     const ahora = new Date();
                     const horaVenezuela = new Date(ahora.toLocaleString('en-US', { timeZone: 'America/Caracas' }));
-                    const fechaHoy = String(horaVenezuela.getDate()).padStart(2, '0') + '/' +
-                        String(horaVenezuela.getMonth() + 1).padStart(2, '0') + '/' +
-                        horaVenezuela.getFullYear();
-                    const fechaHoyKey = horaVenezuela.getFullYear() + '-' +
-                        String(horaVenezuela.getMonth() + 1).padStart(2, '0') + '-' +
-                        String(horaVenezuela.getDate()).padStart(2, '0');
-
-                    // Encontrar la última entrada válida (no futura) como "Hoy"
+                    const fechaHoy = String(horaVenezuela.getDate()).padStart(2, '0') + '/' + 
+                                   String(horaVenezuela.getMonth() + 1).padStart(2, '0') + '/' + 
+                                   horaVenezuela.getFullYear();
+                    const fechaHoyKey = horaVenezuela.getFullYear() + '-' + 
+                                      String(horaVenezuela.getMonth() + 1).padStart(2, '0') + '-' + 
+                                      String(horaVenezuela.getDate()).padStart(2, '0');
+                    
                     let hoyIndex = -1;
-                    let btnPos = 0;
                     for (let i = 0; i < data.historial.length; i++) {
                         const f = data.historial[i].fecha ? data.historial[i].fecha.split('-').reverse().join('/') : '';
-                        if (f === fechaHoy) {
-                            hoyIndex = i;
-                            break;
-                        }
+                        if (f === fechaHoy) { hoyIndex = i; break; }
                     }
                     if (hoyIndex === -1) {
-                        // Buscar la más reciente <= hoy
                         for (let i = 0; i < data.historial.length; i++) {
                             if (data.historial[i].fecha && data.historial[i].fecha <= fechaHoyKey) {
-                                hoyIndex = i;
-                                break;
+                                hoyIndex = i; break;
                             }
                         }
                         if (hoyIndex === -1) hoyIndex = 0;
                     }
-                    // Si hay entradas futuras, "Hoy" está después de ellas en los botones
-                    btnPos = data.historial.filter(e => e.fecha && e.fecha > fechaHoyKey).length;
-
+                    const btnPos = data.historial.filter(e => e.fecha && e.fecha > fechaHoyKey).length;
                     selectedDateIndex = hoyIndex;
                     loadDateEntry(selectedDateIndex, btnPos);
                     renderHistorial(data.historial);
@@ -422,9 +448,9 @@
         setInterval(() => {
             const ahora = new Date();
             const horaVenezuela = new Date(ahora.toLocaleString('en-US', { timeZone: 'America/Caracas' }));
-            const fechaActual = String(horaVenezuela.getDate()).padStart(2, '0') + '/' +
-                String(horaVenezuela.getMonth() + 1).padStart(2, '0') + '/' +
-                horaVenezuela.getFullYear();
+            const fechaActual = String(horaVenezuela.getDate()).padStart(2, '0') + '/' + 
+                               String(horaVenezuela.getMonth() + 1).padStart(2, '0') + '/' + 
+                               horaVenezuela.getFullYear();
             if (ultimaFechaVenezuela !== '' && ultimaFechaVenezuela !== fechaActual) {
                 consultarTasa();
             }
@@ -432,7 +458,7 @@
         }, 60000);
 
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/sw.js').catch(() => { });
+            navigator.serviceWorker.register('/sw.js').catch(() => {});
         }
     </script>
 </body>
