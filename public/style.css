@@ -433,24 +433,22 @@ body::after {
 .date-btn {
     flex: 1;
     min-width: 0;
-    padding: 9px 8px;
+    padding: 9px 6px;
     border: 1.5px solid var(--input-border);
     border-radius: 14px;
     background: var(--input-bg);
     color: var(--text-muted);
-    font-size: 0.75rem;
-    font-weight: 700;
     cursor: pointer;
-    overflow: visible;
-    text-overflow: clip;
-    white-space: normal;
-    word-break: break-word;
-    line-height: 1.35;
-    min-height: 42px;
+    overflow: hidden;
+    min-height: 46px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     font-family: inherit;
     text-align: center;
-    letter-spacing: 0.01em;
     outline: none;
 }
 .date-btn:hover {
@@ -475,10 +473,8 @@ body::after {
     cursor: not-allowed;
 }
 .date-btn.future-btn {
-    flex: none;
-    white-space: nowrap;
-    overflow: visible;
-    text-overflow: clip;
+    flex: 1.5;
+    gap: 2px;
     background: linear-gradient(135deg, rgba(139,92,246,0.18) 0%, rgba(99,102,241,0.12) 100%);
     border-color: rgba(139,92,246,0.45);
     color: var(--text);
@@ -486,6 +482,32 @@ body::after {
 .date-btn.future-btn.active {
     background: linear-gradient(135deg, #7c3aed 0%, #6366f1 100%);
     box-shadow: 0 4px 16px rgba(124,58,237,0.35);
+}
+.future-label {
+    font-size: 0.66rem;
+    font-weight: 800;
+    white-space: nowrap;
+    line-height: 1.2;
+    color: inherit;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+.date-day {
+    font-size: 0.68rem;
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    line-height: 1.2;
+    max-width: 100%;
+    color: inherit;
+}
+.date-num {
+    font-size: 0.62rem;
+    font-weight: 600;
+    white-space: nowrap;
+    line-height: 1.2;
+    opacity: 0.75;
+    color: inherit;
 }
 
 /* =========================================================
@@ -607,7 +629,7 @@ body::after {
     align-items: center;
     background: var(--input-bg);
     border-radius: 16px;
-    padding: 2px 4px 2px 16px;
+    padding: 4px 10px 4px 16px;
     border: 1.5px solid var(--input-border);
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     gap: 8px;

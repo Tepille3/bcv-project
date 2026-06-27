@@ -217,12 +217,12 @@
                               String(horaVenezuela.getMonth() + 1).padStart(2, '0') + '-' + 
                               String(horaVenezuela.getDate()).padStart(2, '0');
             
-            const diasSemana = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+            const diasSemana = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
             
             function formatearFecha(fechaStr) {
                 const partes = fechaStr.split('-');
                 const d = new Date(partes[0], partes[1] - 1, partes[2]);
-                return diasSemana[d.getDay()] + ' · ' + partes[2] + '/' + partes[1];
+                return { day: diasSemana[d.getDay()], date: partes[2] + '/' + partes[1] };
             }
             
             const futuras = historial.filter(e => e.fecha > fechaHoyKey);
@@ -230,18 +230,20 @@
             
             const entries = [];
             futuras.forEach(e => {
-                entries.push({ label: 'Próxima (' + formatearFecha(e.fecha) + ')', entry: e, isHoy: false, isFuture: true });
+                const f = formatearFecha(e.fecha);
+                entries.push({ labelHtml: '<span class="future-label">Próxima</span><span class="date-day">' + f.day + '</span><span class="date-num">' + f.date + '</span>', entry: e, isHoy: false, isFuture: true });
             });
             for (let i = 0; i < Math.min(pasadas.length, 3); i++) {
                 const e = pasadas[i];
-                entries.push({ label: formatearFecha(e.fecha), entry: e, isHoy: i === 0, isFuture: false });
+                const f = formatearFecha(e.fecha);
+                entries.push({ labelHtml: '<span class="date-day">' + f.day + '</span><span class="date-num">' + f.date + '</span>', entry: e, isHoy: i === 0, isFuture: false });
             }
             
             entries.forEach((entry, j) => {
                 const btn = document.createElement('button');
                 const histIndex = historial.indexOf(entry.entry);
                 btn.className = 'date-btn' + (histIndex === selectedDateIndex ? ' active' : '') + (entry.isHoy ? ' hoy-btn' : '') + (entry.isFuture ? ' future-btn' : '');
-                btn.textContent = entry.label;
+                btn.innerHTML = entry.labelHtml;
                 btn.title = entry.entry.fecha.split('-').reverse().join('/');
                 btn.onclick = () => loadDateEntry(histIndex, j);
                 selector.appendChild(btn);
