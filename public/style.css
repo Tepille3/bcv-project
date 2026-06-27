@@ -132,12 +132,13 @@ body::after {
     width: 36px;
     height: 36px;
     border-radius: 10px;
-    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
+    background: transparent;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 4px 14px rgba(99,102,241,0.4);
+    box-shadow: 0 4px 14px rgba(0,75,147,0.45);
     flex-shrink: 0;
+    overflow: hidden;
 }
 
 .brand-icon svg {
