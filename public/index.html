@@ -42,7 +42,7 @@
                     <span id="badge-icon"></span>
                     <span id="badge-text">Conectando...</span>
                 </div>
-                <select class="currency-select" id="currencySelect" onchange="onCurrencyChange()">
+                <select class="currency-select" id="currencySelect" onchange="onCurrencySelect()">
                     <option value="USD">💵 USD — Dólar</option>
                     <option value="EUR">💶 EUR — Euro</option>
                     <option value="USDT">🟢 USDT — Binance</option>
@@ -137,7 +137,7 @@
         </div>
 
         <!-- Footer -->
-        <div class="footer">Fuentes: bcv.org.ve &nbsp;·&nbsp; USDT: Binance P2P (cada 2 h) &nbsp;·&nbsp; Actualización cada 5 min</div>
+        <div class="footer">Fuentes: bcv.org.ve &nbsp;·&nbsp; USDT: Binance P2P (cada 1 h) &nbsp;·&nbsp; Actualización cada 5 min</div>
     </div>
 
     <script>
@@ -153,6 +153,28 @@
             const isDark = document.body.dataset.theme === 'dark';
             document.body.dataset.theme = isDark ? '' : 'dark';
             localStorage.setItem('theme', isDark ? 'light' : 'dark');
+        }
+
+        function venezuelaDateKey() {
+            const hv = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Caracas' }));
+            return hv.getFullYear() + '-' +
+                   String(hv.getMonth() + 1).padStart(2, '0') + '-' +
+                   String(hv.getDate()).padStart(2, '0');
+        }
+
+        // Fecha de hoy en Venezuela con formato dd/mm/aaaa (para el valor USDT en vivo)
+        function fechaHoyDisplay() {
+            return venezuelaDateKey().split('-').reverse().join('/');
+        }
+
+        // Fecha valor de una entrada del historial en formato dd/mm/aaaa
+        function formatEntryFecha(entry) {
+            const fechaParts = (entry.fechaVenezuela || '').split(' de ');
+            if (fechaParts.length === 3) {
+                const meses = { 'enero': '01', 'febrero': '02', 'marzo': '03', 'abril': '04', 'mayo': '05', 'junio': '06', 'julio': '07', 'agosto': '08', 'septiembre': '09', 'octubre': '10', 'noviembre': '11', 'diciembre': '12' };
+                return fechaParts[0].padStart(2, '0') + '/' + (meses[fechaParts[1].toLowerCase()] || '01') + '/' + fechaParts[2];
+            }
+            return entry.fecha.split('-').reverse().join('/');
         }
 
         function loadDateEntry(index, btnIndex) {
@@ -185,12 +207,20 @@
               const anio = fechaParts[2];
               fechaDisplay = dia + '/' + mes + '/' + anio;
             }
+
+            // En USDT, si la entrada no trae un valor USDT propio, estamos mostrando el precio
+            // en vivo de Binance, que corresponde a HOY (no a la fecha valor del BCV).
+            const usdtEnVivo = selectedCurrency === 'USDT' && !(entry.tasas && entry.tasas.USDT != null);
+            if (usdtEnVivo) {
+                fechaDisplay = fechaHoyDisplay();
+            }
+
             document.getElementById('fecha-val').textContent = fechaDisplay;
             document.getElementById('input-bs').value = '';
             document.getElementById('input-div').value = '';
             activeField = null;
             const badge = document.getElementById('badge');
-            if (fechaEntry === fechaHoy) {
+            if (usdtEnVivo || fechaEntry === fechaHoy) {
                 badge.className = 'badge success';
                 document.getElementById('badge-text').textContent = 'Tasa Oficial BCV';
             } else {
@@ -223,8 +253,14 @@
                 return { day: diasSemana[d.getDay()], date: partes[2] + '/' + partes[1] };
             }
             
-            const futuras = historial.filter(e => e.fecha > fechaHoyKey);
-            const pasadas = historial.filter(e => e.fecha <= fechaHoyKey);
+            const esUSDT = selectedCurrency === 'USDT';
+            const tieneUSDT = e => e.tasas && e.tasas.USDT != null;
+
+            // "Próxima" (tasa BCV futura) no aplica al USDT: se oculta cuando esa moneda está activa
+            const futuras = esUSDT ? [] : historial.filter(e => e.fecha > fechaHoyKey);
+            // En USDT solo se muestran las fechas que tengan un valor USDT guardado en la base de datos
+            let pasadas = historial.filter(e => e.fecha <= fechaHoyKey);
+            if (esUSDT) pasadas = pasadas.filter(tieneUSDT);
             
             const entries = [];
             futuras.forEach(e => {
@@ -247,7 +283,8 @@
                 selector.appendChild(btn);
             });
             
-            section.style.display = 'block';
+            // Sin fechas que mostrar (p. ej. USDT sin historial guardado): ocultar la sección
+            section.style.display = entries.length ? 'block' : 'none';
         }
 
         const currencyMeta = {
@@ -272,6 +309,36 @@
             document.getElementById('input-bs').value = '';
             document.getElementById('input-div').value = '';
             activeField = null;
+        }
+
+        // Se dispara al cambiar de moneda en el selector
+        function onCurrencySelect() {
+            selectedCurrency = document.getElementById('currencySelect').value;
+
+            // En USDT: apuntar a una fecha con USDT propio; si la actual no lo tiene (o es futura),
+            // usar la última tasa válida, donde loadDateEntry mostrará el valor en vivo con fecha de HOY.
+            if (selectedCurrency === 'USDT' && historialData.length) {
+                const fechaHoyKey = venezuelaDateKey();
+                const tieneUSDT = e => e.tasas && e.tasas.USDT != null;
+                const sel = historialData[selectedDateIndex];
+                if (!sel || sel.fecha > fechaHoyKey || !tieneUSDT(sel)) {
+                    let idx = historialData.findIndex(e => e.fecha && e.fecha <= fechaHoyKey && tieneUSDT(e));
+                    if (idx === -1) idx = historialData.findIndex(e => e.fecha && e.fecha <= fechaHoyKey);
+                    if (idx === -1) idx = 0;
+                    selectedDateIndex = idx;
+                }
+                loadDateEntry(selectedDateIndex, -1);
+                renderHistorial(historialData);
+                return;
+            }
+
+            // USD/EUR comparten la fecha valor del BCV: restaurarla por si venía de la vista USDT (hoy)
+            onCurrencyChange();
+            if (historialData.length) {
+                renderHistorial(historialData);
+                const sel = historialData[selectedDateIndex];
+                if (sel) document.getElementById('fecha-val').textContent = formatEntryFecha(sel);
+            }
         }
 
         function fmtNum(val) {
@@ -408,7 +475,14 @@
                         }
                         if (hoyIndex === -1) hoyIndex = 0;
                     }
-                    const btnPos = data.historial.filter(e => e.fecha && e.fecha > fechaHoyKey).length;
+                    // En USDT, apuntar a la fecha más reciente que tenga valor USDT guardado
+                    if (selectedCurrency === 'USDT') {
+                        const usdtIdx = data.historial.findIndex(e => e.fecha && e.fecha <= fechaHoyKey && e.tasas && e.tasas.USDT != null);
+                        if (usdtIdx !== -1) hoyIndex = usdtIdx;
+                    }
+                    const btnPos = selectedCurrency === 'USDT'
+                        ? 0
+                        : data.historial.filter(e => e.fecha && e.fecha > fechaHoyKey).length;
                     selectedDateIndex = hoyIndex;
                     loadDateEntry(selectedDateIndex, btnPos);
                     renderHistorial(data.historial);

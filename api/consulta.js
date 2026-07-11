@@ -7,21 +7,26 @@ const BCV_URL = 'https://www.bcv.org.ve/';
 
 async function getHistorial() {
   const rates = await db.getRates();
-  return rates.map(r => ({
-    fecha: r.date,
-    fechaVenezuela: r.fechaVenezuela,
-    monedas: {
-      USD: r.usd.toFixed(2).replace('.', ','),
-      EUR: r.eur ? r.eur.toFixed(2).replace('.', ',') : null,
-      USDT: r.usdt ? r.usdt.toFixed(2).replace('.', ',') : null,
-    },
-    tasas: {
-      USD: r.usd,
-      EUR: r.eur,
-      USDT: r.usdt || null,
-    },
-    ultima_actualizacion: r.fuente + ' | Fecha BCV: ' + r.fechaVenezuela,
-  }));
+  const daily = await db.getUsdtDaily();
+  return rates.map(r => {
+    // Para cada día, el USDT del historial es el último valor registrado ese día
+    const usdtVal = daily[r.date] != null ? daily[r.date] : (r.usdt || null);
+    return {
+      fecha: r.date,
+      fechaVenezuela: r.fechaVenezuela,
+      monedas: {
+        USD: r.usd.toFixed(2).replace('.', ','),
+        EUR: r.eur ? r.eur.toFixed(2).replace('.', ',') : null,
+        USDT: usdtVal ? usdtVal.toFixed(2).replace('.', ',') : null,
+      },
+      tasas: {
+        USD: r.usd,
+        EUR: r.eur,
+        USDT: usdtVal,
+      },
+      ultima_actualizacion: r.fuente + ' | Fecha BCV: ' + r.fechaVenezuela,
+    };
+  });
 }
 
 function pushToHistorial(historial, entry) {
@@ -131,13 +136,21 @@ async function fetchFromBinance() {
   return null;
 }
 
-// El precio de USDT se refresca en horas fijas ancladas al reloj (00:00, 02:00, 04:00 ...)
-const USDT_REFRESH_MS = 2 * 60 * 60 * 1000;
+// El precio de USDT se refresca en horas fijas ancladas al reloj (00:00, 01:00, 02:00 ...)
+const USDT_REFRESH_MS = 1 * 60 * 60 * 1000;
 
-// Identifica la franja de 2 h del reloj a la que pertenece un instante.
-// Al ser Venezuela UTC-4 (desfase par), estas franjas caen en horas pares tanto en UTC como VET.
+// Identifica la franja horaria del reloj a la que pertenece un instante.
+// Al ser Venezuela UTC-4 (desfase de horas completas), estas franjas caen en horas en punto tanto en UTC como VET.
 function usdtBucket(ts) {
   return Math.floor(ts / USDT_REFRESH_MS);
+}
+
+// Fecha actual en Venezuela como clave YYYY-MM-DD
+function fechaVenezuelaKey() {
+  const hv = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Caracas' }));
+  return hv.getFullYear() + '-' +
+    String(hv.getMonth() + 1).padStart(2, '0') + '-' +
+    String(hv.getDate()).padStart(2, '0');
 }
 
 async function getUsdtCached() {
@@ -149,10 +162,11 @@ async function getUsdtCached() {
     return snapshot.value;
   }
 
-  // Nueva franja horaria (o sin caché): consultar Binance y guardar el nuevo valor
+  // Nueva franja horaria (o sin caché): consultar Binance y guardar el nuevo valor.
+  // Se registra bajo la fecha de hoy en Venezuela; así el último valor del día queda en el historial.
   const fresh = await fetchFromBinance();
   if (fresh && fresh > 0) {
-    await db.saveUsdtSnapshot(fresh, ahora);
+    await db.saveUsdtSnapshot(fresh, ahora, fechaVenezuelaKey());
     return fresh;
   }
 
@@ -291,16 +305,19 @@ const ahora = new Date();
       const latestValid = historial.find(e => e.fecha <= fechaActual) || historial[0];
       const responseEntry = latestValid || { monedas: {}, tasas: {}, fechaVenezuela: '', ultima_actualizacion: 'Sin datos' };
 
-      // El USDT es un precio de mercado en vivo: siempre mostrar el valor recién obtenido
+      // El USDT es un precio de mercado en vivo: la tarjeta principal muestra el valor recién
+      // obtenido, pero SIN mutar la entrada del historial (cada día conserva su último USDT).
+      let respMonedas = responseEntry.monedas;
+      let respTasas = responseEntry.tasas;
       if (usdtValue && usdtValue > 0) {
-        responseEntry.monedas = Object.assign({}, responseEntry.monedas, { USDT: formatRate(usdtValue) });
-        responseEntry.tasas = Object.assign({}, responseEntry.tasas, { USDT: usdtValue });
+        respMonedas = Object.assign({}, respMonedas, { USDT: formatRate(usdtValue) });
+        respTasas = Object.assign({}, respTasas, { USDT: usdtValue });
       }
 
       return res.status(200).json({
         success: true,
-        monedas: responseEntry.monedas,
-        tasas: responseEntry.tasas,
+        monedas: respMonedas,
+        tasas: respTasas,
         fechaVenezuela: responseEntry.fechaVenezuela,
         ultima_actualizacion: responseEntry.ultima_actualizacion,
         historial,

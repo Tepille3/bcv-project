@@ -86,6 +86,8 @@ async function getRateByDate(date) {
 }
 
 // ----- Snapshot de USDT (caché con marca de tiempo, independiente de las tasas BCV) -----
+// Estructura: { value, fetchedAt, daily: { "YYYY-MM-DD": valor } }
+// `daily` guarda el último valor registrado de cada día para el historial.
 async function getUsdtSnapshot() {
   if (redis) {
     try {
@@ -102,8 +104,23 @@ async function getUsdtSnapshot() {
   return null;
 }
 
-async function saveUsdtSnapshot(value, fetchedAt) {
-  const snapshot = { value: parseFloat(value), fetchedAt: fetchedAt || Date.now() };
+async function getUsdtDaily() {
+  const snap = await getUsdtSnapshot();
+  return snap && snap.daily && typeof snap.daily === 'object' ? snap.daily : {};
+}
+
+async function saveUsdtSnapshot(value, fetchedAt, dateKey) {
+  const prev = await getUsdtSnapshot();
+  const daily = prev && prev.daily && typeof prev.daily === 'object' ? prev.daily : {};
+
+  // El último valor del día sobrescribe al anterior de esa misma fecha
+  if (dateKey) daily[dateKey] = parseFloat(value);
+
+  // Conservar solo los 30 días más recientes
+  const trimmed = {};
+  Object.keys(daily).sort().reverse().slice(0, 30).forEach(k => { trimmed[k] = daily[k]; });
+
+  const snapshot = { value: parseFloat(value), fetchedAt: fetchedAt || Date.now(), daily: trimmed };
   if (redis) {
     try { await redis.set(USDT_KEY, snapshot); } catch (_) {}
   }
@@ -113,4 +130,4 @@ async function saveUsdtSnapshot(value, fetchedAt) {
   return snapshot;
 }
 
-module.exports = { saveRate, getRates, getLatestRate, getRateByDate, getUsdtSnapshot, saveUsdtSnapshot };
+module.exports = { saveRate, getRates, getLatestRate, getRateByDate, getUsdtSnapshot, getUsdtDaily, saveUsdtSnapshot };
