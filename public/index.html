@@ -148,6 +148,8 @@
         let pollTimer = null;
         let historialData = [];
         let selectedDateIndex = 1;
+        let bcvHistorial = [];   // fechas del BCV (para USD/EUR)
+        let usdtHistorial = [];  // fechas propias del USDT (mapa diario)
 
         function toggleTheme() {
             const isDark = document.body.dataset.theme === 'dark';
@@ -165,6 +167,31 @@
         // Fecha de hoy en Venezuela con formato dd/mm/aaaa (para el valor USDT en vivo)
         function fechaHoyDisplay() {
             return venezuelaDateKey().split('-').reverse().join('/');
+        }
+
+        // Dataset de historial activo según la moneda seleccionada
+        function historialActivo() {
+            return selectedCurrency === 'USDT' ? usdtHistorial : bcvHistorial;
+        }
+
+        // Índice de la entrada "actual" (hoy, o la más reciente válida) dentro de un dataset
+        function indiceActual(hist) {
+            const hoyKey = venezuelaDateKey();
+            const hoy = hoyKey.split('-').reverse().join('/');
+            for (let i = 0; i < hist.length; i++) {
+                const f = hist[i].fecha ? hist[i].fecha.split('-').reverse().join('/') : '';
+                if (f === hoy) return i;
+            }
+            for (let i = 0; i < hist.length; i++) {
+                if (hist[i].fecha && hist[i].fecha <= hoyKey) return i;
+            }
+            return 0;
+        }
+
+        // Posición del botón de la entrada actual (las fechas futuras se muestran primero)
+        function btnPosActual(hist) {
+            const hoyKey = venezuelaDateKey();
+            return hist.filter(e => e.fecha && e.fecha > hoyKey).length;
         }
 
         // Fecha valor de una entrada del historial en formato dd/mm/aaaa
@@ -220,7 +247,9 @@
             document.getElementById('input-div').value = '';
             activeField = null;
             const badge = document.getElementById('badge');
-            if (usdtEnVivo || fechaEntry === fechaHoy) {
+            // La entrada actual del dataset es la tasa vigente; el resto es historial.
+            const esActual = index === indiceActual(historialData);
+            if (usdtEnVivo || esActual || fechaEntry === fechaHoy) {
                 badge.className = 'badge success';
                 document.getElementById('badge-text').textContent = 'Tasa Oficial BCV';
             } else {
@@ -314,30 +343,21 @@
         // Se dispara al cambiar de moneda en el selector
         function onCurrencySelect() {
             selectedCurrency = document.getElementById('currencySelect').value;
+            const activo = historialActivo();
 
-            // En USDT: apuntar a una fecha con USDT propio; si la actual no lo tiene (o es futura),
-            // usar la última tasa válida, donde loadDateEntry mostrará el valor en vivo con fecha de HOY.
-            if (selectedCurrency === 'USDT' && historialData.length) {
-                const fechaHoyKey = venezuelaDateKey();
-                const tieneUSDT = e => e.tasas && e.tasas.USDT != null;
-                const sel = historialData[selectedDateIndex];
-                if (!sel || sel.fecha > fechaHoyKey || !tieneUSDT(sel)) {
-                    let idx = historialData.findIndex(e => e.fecha && e.fecha <= fechaHoyKey && tieneUSDT(e));
-                    if (idx === -1) idx = historialData.findIndex(e => e.fecha && e.fecha <= fechaHoyKey);
-                    if (idx === -1) idx = 0;
-                    selectedDateIndex = idx;
+            if (activo.length) {
+                // Cambiar al dataset de la moneda y mostrar su entrada actual (hoy para USDT)
+                const idx = indiceActual(activo);
+                historialData = activo;
+                selectedDateIndex = idx;
+                loadDateEntry(idx, btnPosActual(activo));
+                renderHistorial(activo);
+            } else {
+                onCurrencyChange();
+                // USDT sin historial guardado: mostrar valor en vivo con fecha de hoy
+                if (selectedCurrency === 'USDT') {
+                    document.getElementById('fecha-val').textContent = fechaHoyDisplay();
                 }
-                loadDateEntry(selectedDateIndex, -1);
-                renderHistorial(historialData);
-                return;
-            }
-
-            // USD/EUR comparten la fecha valor del BCV: restaurarla por si venía de la vista USDT (hoy)
-            onCurrencyChange();
-            if (historialData.length) {
-                renderHistorial(historialData);
-                const sel = historialData[selectedDateIndex];
-                if (sel) document.getElementById('fecha-val').textContent = formatEntryFecha(sel);
             }
         }
 
@@ -413,7 +433,8 @@
                     tasas: latestHist.tasas,
                     fechaVenezuela: latestHist.fechaVenezuela,
                     ultima_actualizacion: latestHist.ultima_actualizacion,
-                    historial: data.historial
+                    historial: data.historial,
+                    usdtHistorial: data.usdtHistorial
                 };
                 fallbackUsed = true;
             }
@@ -452,40 +473,18 @@
                   const txt = data.ultima_actualizacion.replace(/BCV.*\|\s*/, '').replace(/Fecha valor:\s*/i, '').trim();
                   document.getElementById('fecha-val').textContent = txt;
                 }
-                if (data.historial && data.historial.length >= 1) {
-                    const ahora = new Date();
-                    const horaVenezuela = new Date(ahora.toLocaleString('en-US', { timeZone: 'America/Caracas' }));
-                    const fechaHoy = String(horaVenezuela.getDate()).padStart(2, '0') + '/' + 
-                                   String(horaVenezuela.getMonth() + 1).padStart(2, '0') + '/' + 
-                                   horaVenezuela.getFullYear();
-                    const fechaHoyKey = horaVenezuela.getFullYear() + '-' + 
-                                      String(horaVenezuela.getMonth() + 1).padStart(2, '0') + '-' + 
-                                      String(horaVenezuela.getDate()).padStart(2, '0');
-                    
-                    let hoyIndex = -1;
-                    for (let i = 0; i < data.historial.length; i++) {
-                        const f = data.historial[i].fecha ? data.historial[i].fecha.split('-').reverse().join('/') : '';
-                        if (f === fechaHoy) { hoyIndex = i; break; }
-                    }
-                    if (hoyIndex === -1) {
-                        for (let i = 0; i < data.historial.length; i++) {
-                            if (data.historial[i].fecha && data.historial[i].fecha <= fechaHoyKey) {
-                                hoyIndex = i; break;
-                            }
-                        }
-                        if (hoyIndex === -1) hoyIndex = 0;
-                    }
-                    // En USDT, apuntar a la fecha más reciente que tenga valor USDT guardado
-                    if (selectedCurrency === 'USDT') {
-                        const usdtIdx = data.historial.findIndex(e => e.fecha && e.fecha <= fechaHoyKey && e.tasas && e.tasas.USDT != null);
-                        if (usdtIdx !== -1) hoyIndex = usdtIdx;
-                    }
-                    const btnPos = selectedCurrency === 'USDT'
-                        ? 0
-                        : data.historial.filter(e => e.fecha && e.fecha > fechaHoyKey).length;
-                    selectedDateIndex = hoyIndex;
-                    loadDateEntry(selectedDateIndex, btnPos);
-                    renderHistorial(data.historial);
+                bcvHistorial = data.historial || [];
+                usdtHistorial = data.usdtHistorial || [];
+                const activoHist = historialActivo();
+                if (activoHist.length >= 1) {
+                    const idx = indiceActual(activoHist);
+                    historialData = activoHist;
+                    selectedDateIndex = idx;
+                    loadDateEntry(idx, btnPosActual(activoHist));
+                    renderHistorial(activoHist);
+                } else if (selectedCurrency === 'USDT') {
+                    // USDT sin historial guardado: mantener valor en vivo con fecha de hoy
+                    document.getElementById('fecha-val').textContent = fechaHoyDisplay();
                 }
             } else {
                 badge.className = 'badge error';

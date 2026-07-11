@@ -153,6 +153,29 @@ function fechaVenezuelaKey() {
     String(hv.getDate()).padStart(2, '0');
 }
 
+const MESES_LARGO = { '01': 'enero', '02': 'febrero', '03': 'marzo', '04': 'abril', '05': 'mayo', '06': 'junio', '07': 'julio', '08': 'agosto', '09': 'septiembre', '10': 'octubre', '11': 'noviembre', '12': 'diciembre' };
+
+// Clave YYYY-MM-DD -> "DD de MMMM de YYYY"
+function fechaVELarga(fechaKey) {
+  const p = fechaKey.split('-');
+  return p[2] + ' de ' + (MESES_LARGO[p[1]] || '') + ' de ' + p[0];
+}
+
+// Historial propio de USDT construido desde el mapa diario (fechas de calendario, no del BCV).
+// Incluye hoy con el valor en vivo para que sea la entrada actual.
+function buildUsdtHistorial(daily, fechaHoy, valorHoy) {
+  const map = Object.assign({}, daily);
+  if (valorHoy && valorHoy > 0) map[fechaHoy] = valorHoy;
+  return Object.keys(map)
+    .sort().reverse().slice(0, 30)
+    .map(f => ({
+      fecha: f,
+      fechaVenezuela: fechaVELarga(f),
+      monedas: { USDT: map[f].toFixed(2).replace('.', ',') },
+      tasas: { USDT: map[f] },
+    }));
+}
+
 async function getUsdtCached() {
   const snapshot = await db.getUsdtSnapshot();
   const ahora = Date.now();
@@ -227,6 +250,10 @@ const ahora = new Date();
   }
 
   const usdtValue = await binancePromise;
+
+  // Historial de USDT desde su propio mapa diario (independiente de las fechas del BCV)
+  const usdtDailyMap = await db.getUsdtDaily();
+  const usdtHistorial = buildUsdtHistorial(usdtDailyMap, fechaActual, usdtValue);
 
   if (resultado) {
     const meses = { 'enero': '01', 'febrero': '02', 'marzo': '03', 'abril': '04', 'mayo': '05', 'junio': '06', 'julio': '07', 'agosto': '08', 'septiembre': '09', 'octubre': '10', 'noviembre': '11', 'diciembre': '12' };
@@ -321,6 +348,7 @@ const ahora = new Date();
         fechaVenezuela: responseEntry.fechaVenezuela,
         ultima_actualizacion: responseEntry.ultima_actualizacion,
         historial,
+        usdtHistorial,
         desde_cache: false,
       });
     }
@@ -330,6 +358,7 @@ const ahora = new Date();
     monedas: usdtValue && usdtValue > 0 ? { USDT: formatRate(usdtValue) } : {},
     tasas: usdtValue && usdtValue > 0 ? { USDT: usdtValue } : {},
     historial,
+    usdtHistorial,
     ultima_actualizacion: 'Sin datos',
   });
 };
