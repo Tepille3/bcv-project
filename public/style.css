@@ -12,6 +12,9 @@
     --euro:          #f59e0b;
     --euro-dark:     #d97706;
     --euro-glow:     rgba(245,158,11,0.22);
+    --usdt:          #26a17b;
+    --usdt-dark:     #1c8a67;
+    --usdt-glow:     rgba(38,161,123,0.22);
     --green:         #10b981;
     --green-glow:    rgba(16,185,129,0.22);
     --red:           #ef4444;
@@ -356,6 +359,13 @@ body::after {
     background-clip: text;
 }
 
+.rate-value.usdt-color {
+    background: linear-gradient(135deg, #4ecfa5 0%, #26a17b 50%, #1c8a67 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
 .rate-unit {
     font-size: 0.68rem;
     color: var(--text-muted);
@@ -644,6 +654,10 @@ body::after {
     border-color: var(--euro);
     box-shadow: 0 0 0 3px var(--euro-glow);
 }
+.calc-input-wrap.usdt:focus-within {
+    border-color: var(--usdt);
+    box-shadow: 0 0 0 3px var(--usdt-glow);
+}
 
 .calc-input-wrap input {
     flex: 1;
@@ -683,6 +697,10 @@ body::after {
 .currency-badge.euro {
     background: linear-gradient(135deg, var(--euro) 0%, var(--euro-dark) 100%);
     box-shadow: 0 2px 8px rgba(245,158,11,0.3);
+}
+.currency-badge.usdt {
+    background: linear-gradient(135deg, var(--usdt) 0%, var(--usdt-dark) 100%);
+    box-shadow: 0 2px 8px rgba(38,161,123,0.3);
 }
 .currency-badge.bs-badge {
     background: linear-gradient(135deg, var(--green) 0%, #059669 100%);

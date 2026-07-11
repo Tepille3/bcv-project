@@ -45,6 +45,7 @@
                 <select class="currency-select" id="currencySelect" onchange="onCurrencyChange()">
                     <option value="USD">💵 USD — Dólar</option>
                     <option value="EUR">💶 EUR — Euro</option>
+                    <option value="USDT">🟢 USDT — Binance</option>
                 </select>
             </div>
 
@@ -136,12 +137,12 @@
         </div>
 
         <!-- Footer -->
-        <div class="footer">Fuente: bcv.org.ve &nbsp;·&nbsp; Actualización automática cada 5 minutos</div>
+        <div class="footer">Fuentes: bcv.org.ve &nbsp;·&nbsp; USDT: Binance P2P (cada 2 h) &nbsp;·&nbsp; Actualización cada 5 min</div>
     </div>
 
     <script>
-        let allRates = { USD: null, EUR: null };
-        let allRatesDisplay = { USD: null, EUR: null };
+        let allRates = { USD: null, EUR: null, USDT: null };
+        let allRatesDisplay = { USD: null, EUR: null, USDT: null };
         let selectedCurrency = 'USD';
         let activeField = null;
         let pollTimer = null;
@@ -249,19 +250,25 @@
             section.style.display = 'block';
         }
 
+        const currencyMeta = {
+            USD:  { flag: '💵', label: 'Dólares', cls: '' },
+            EUR:  { flag: '💶', label: 'Euros',   cls: 'euro' },
+            USDT: { flag: '🟢', label: 'USDT',    cls: 'usdt' },
+        };
+
         function onCurrencyChange() {
             selectedCurrency = document.getElementById('currencySelect').value;
-            const isEuro = selectedCurrency === 'EUR';
-            document.getElementById('rate-flag').textContent = isEuro ? '💶' : '💵';
+            const meta = currencyMeta[selectedCurrency] || currencyMeta.USD;
+            document.getElementById('rate-flag').textContent = meta.flag;
             document.getElementById('rate-code').textContent = selectedCurrency;
             document.getElementById('rate-unit-label').textContent = selectedCurrency;
             const rateEl = document.getElementById('main-rate');
-            rateEl.className = 'rate-value' + (isEuro ? ' euro-color' : '');
+            rateEl.className = 'rate-value' + (meta.cls ? ' ' + meta.cls + '-color' : '');
             rateEl.textContent = allRatesDisplay[selectedCurrency] || '—';
-            document.getElementById('label-div').textContent = isEuro ? 'Euros' : 'Dólares';
+            document.getElementById('label-div').textContent = meta.label;
             document.getElementById('badge-div').textContent = selectedCurrency;
-            document.getElementById('badge-div').className = 'currency-badge' + (isEuro ? ' euro' : '');
-            document.getElementById('wrap-div').className = 'calc-input-wrap' + (isEuro ? ' euro' : '');
+            document.getElementById('badge-div').className = 'currency-badge' + (meta.cls ? ' ' + meta.cls : '');
+            document.getElementById('wrap-div').className = 'calc-input-wrap' + (meta.cls ? ' ' + meta.cls : '');
             document.getElementById('input-bs').value = '';
             document.getElementById('input-div').value = '';
             activeField = null;

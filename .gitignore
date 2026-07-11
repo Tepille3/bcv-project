@@ -1,5 +1,6 @@
 node_modules/
 package-lock.json
+api/usdt-cache.json
 .env
 .cache/
 .DS_Store

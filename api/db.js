@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 const DB_FILE = path.join(__dirname, 'data.json');
+const USDT_FILE = path.join(__dirname, 'usdt-cache.json');
 
 let redis = null;
 try {
@@ -14,6 +15,7 @@ try {
 } catch (_) {}
 
 const REDIS_KEY = 'bcv_rates';
+const USDT_KEY = 'bcv_usdt';
 
 async function getDB() {
   if (redis) {
@@ -41,7 +43,7 @@ async function saveDB(data) {
   } catch (_) {}
 }
 
-async function saveRate(date, fechaVenezuela, usd, eur, fuente) {
+async function saveRate(date, fechaVenezuela, usd, eur, fuente, usdt) {
   const db = await getDB();
 
   const existing = db.rates.findIndex(r => r.date === date);
@@ -51,6 +53,7 @@ async function saveRate(date, fechaVenezuela, usd, eur, fuente) {
     fechaVenezuela,
     usd: parseFloat(usd),
     eur: eur ? parseFloat(eur) : null,
+    usdt: usdt ? parseFloat(usdt) : null,
     fuente,
     updatedAt: new Date().toISOString()
   };
@@ -82,4 +85,32 @@ async function getRateByDate(date) {
   return db.rates.find(r => r.date === date) || null;
 }
 
-module.exports = { saveRate, getRates, getLatestRate, getRateByDate };
+// ----- Snapshot de USDT (caché con marca de tiempo, independiente de las tasas BCV) -----
+async function getUsdtSnapshot() {
+  if (redis) {
+    try {
+      const data = await redis.get(USDT_KEY);
+      if (data && data.value) return data;
+    } catch (_) {}
+  }
+  try {
+    if (fs.existsSync(USDT_FILE)) {
+      const snap = JSON.parse(fs.readFileSync(USDT_FILE, 'utf8'));
+      if (snap && snap.value) return snap;
+    }
+  } catch (_) {}
+  return null;
+}
+
+async function saveUsdtSnapshot(value, fetchedAt) {
+  const snapshot = { value: parseFloat(value), fetchedAt: fetchedAt || Date.now() };
+  if (redis) {
+    try { await redis.set(USDT_KEY, snapshot); } catch (_) {}
+  }
+  try {
+    fs.writeFileSync(USDT_FILE, JSON.stringify(snapshot, null, 2));
+  } catch (_) {}
+  return snapshot;
+}
+
+module.exports = { saveRate, getRates, getLatestRate, getRateByDate, getUsdtSnapshot, saveUsdtSnapshot };
