@@ -137,7 +137,7 @@
         </div>
 
         <!-- Footer -->
-        <div class="footer">Fuentes: bcv.org.ve &nbsp;·&nbsp; USDT: Binance P2P (cada 1 h) &nbsp;·&nbsp; Actualización cada 5 min</div>
+        <div class="footer">Fuentes: bcv.org.ve &nbsp;·&nbsp; Binance P2P &nbsp;·&nbsp; Tasas BCV y USDT actualizadas cada 1 hora</div>
     </div>
 
     <script>
@@ -510,7 +510,8 @@
                 if (!r.ok) throw new Error();
                 const data = await r.json();
                 updateUI(data);
-                scheduleRetry(5 * 60 * 1000);
+                // BCV y USDT se actualizan cada 1 hora (las tasas no cambian con más frecuencia)
+                scheduleRetry(60 * 60 * 1000);
             } catch (_) {
                 badge.className = 'badge error';
                 document.getElementById('badge-icon').innerHTML = '';
