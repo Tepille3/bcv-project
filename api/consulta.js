@@ -167,7 +167,7 @@ function buildUsdtHistorial(daily, fechaHoy, valorHoy) {
   const map = Object.assign({}, daily);
   if (valorHoy && valorHoy > 0) map[fechaHoy] = valorHoy;
   return Object.keys(map)
-    .sort().reverse().slice(0, 30)
+    .sort().reverse().slice(0, 365)
     .map(f => ({
       fecha: f,
       fechaVenezuela: fechaVELarga(f),
@@ -326,7 +326,7 @@ const ahora = new Date();
       // Mezclar: priorizar el dato recién obtenido del BCV por si DB no se actualizó
       historial = dbHistorial.filter(e => e.fecha !== fechaGuardar);
       historial.unshift(bcvEntry);
-      historial = historial.slice(0, 30);
+      historial = historial.slice(0, 365);
 
       // Mostrar la última tasa válida (no futura) como principal
       const latestValid = historial.find(e => e.fecha <= fechaActual) || historial[0];

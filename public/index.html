@@ -72,9 +72,29 @@
             </div>
 
             <!-- Historial date selector -->
-            <div class="historial" id="historial-section" style="display:none">
+            <div class="historial-section" id="historial-section" style="display:none">
                 <div class="historial-label">Historial</div>
-                <div class="date-selector" id="date-selector"></div>
+                <div class="date-selector" id="date-selector">
+                    <!-- Calendar pick button — appended last by JS -->
+                    <button class="date-btn cal-btn" id="calBtn" onclick="openCalendar()" title="Buscar por fecha" aria-label="Seleccionar fecha en el calendario">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                            <line x1="16" y1="2" x2="16" y2="6"/>
+                            <line x1="8" y1="2" x2="8" y2="6"/>
+                            <line x1="3" y1="10" x2="21" y2="10"/>
+                        </svg>
+                    </button>
+                    <input type="date" id="calInput" class="cal-input" onchange="onCalendarChange()" aria-label="Seleccionar fecha">
+                </div>
+            </div>
+
+            <!-- Calendar result overlay -->
+            <div class="cal-result" id="cal-result" style="display:none">
+                <div class="cal-result-header">
+                    <span class="cal-result-date" id="cal-result-date"></span>
+                    <button class="cal-close-btn" onclick="closeCalendarResult()" aria-label="Cerrar resultado">&times;</button>
+                </div>
+                <div class="cal-result-body" id="cal-result-body"></div>
             </div>
         </div>
 
@@ -150,6 +170,123 @@
         let selectedDateIndex = 1;
         let bcvHistorial = [];   // fechas del BCV (para USD/EUR)
         let usdtHistorial = [];  // fechas propias del USDT (mapa diario)
+
+        /* ============ CALENDAR LOOKUP ============ */
+        function openCalendar() {
+            const calInput = document.getElementById('calInput');
+            // Set max to today in Venezuela
+            const hoy = venezuelaDateKey();
+            calInput.max = hoy;
+            calInput.showPicker ? calInput.showPicker() : calInput.click();
+        }
+
+        async function onCalendarChange() {
+            const calInput = document.getElementById('calInput');
+            const date = calInput.value; // YYYY-MM-DD
+            if (!date) return;
+
+            // Check if this date matches one of the visible day cards/buttons
+            const dayBtns = Array.from(document.querySelectorAll('.date-btn:not(.cal-btn)'));
+            const matchingBtn = dayBtns.find(btn => btn.dataset.fecha === date);
+
+            if (matchingBtn) {
+                document.getElementById('cal-result').style.display = 'none';
+                matchingBtn.click();
+                calInput.value = '';
+                return;
+            }
+
+            // Format helpers
+            const [y, m, d] = date.split('-');
+            const meses = { '01':'enero','02':'febrero','03':'marzo','04':'abril','05':'mayo','06':'junio','07':'julio','08':'agosto','09':'septiembre','10':'octubre','11':'noviembre','12':'diciembre' };
+            const fechaDisplay = d + '/' + m + '/' + y;
+            const fechaLarga   = d + ' de ' + (meses[m] || m) + ' de ' + y;
+
+            // Show spinner in badge while fetching
+            const badge = document.getElementById('badge');
+            const prevBadgeClass = badge.className;
+            const prevBadgeText  = document.getElementById('badge-text').textContent;
+            badge.className = 'badge loading';
+            document.getElementById('badge-icon').innerHTML = '<span class="spinner"></span>';
+            document.getElementById('badge-text').textContent = 'Buscando...';
+
+            // Close any open result panel
+            document.getElementById('cal-result').style.display = 'none';
+
+            try {
+                const r = await fetch('/api/rates-by-date?date=' + date);
+                const data = await r.json();
+
+                document.getElementById('badge-icon').innerHTML = '';
+
+                if (!data.success || data.noData) {
+                    // Restore previous badge and show a brief "no data" notice
+                    badge.className = prevBadgeClass;
+                    document.getElementById('badge-text').textContent = prevBadgeText;
+
+                    const resultEl = document.getElementById('cal-result');
+                    const bodyEl   = document.getElementById('cal-result-body');
+                    const dateEl   = document.getElementById('cal-result-date');
+                    dateEl.textContent = fechaLarga;
+                    bodyEl.innerHTML = '<div class="cal-no-data">📭 No hay valores registrados para esta fecha.</div>';
+                    resultEl.style.display = 'block';
+                    // Auto-dismiss after 4 s
+                    setTimeout(() => {
+                        resultEl.style.display = 'none';
+                        calInput.value = '';
+                    }, 4000);
+                    return;
+                }
+
+                // ── Data found: load into the main rate card ──────────────────
+                // Update every currency that came back so the calculator works
+                ['USD', 'EUR', 'USDT'].forEach(k => {
+                    if (data.tasas[k] != null)  allRates[k]        = data.tasas[k];
+                    if (data.monedas[k] != null) allRatesDisplay[k] = data.monedas[k];
+                });
+
+                // Refresh main display
+                onCurrencyChange();
+
+                // Update the date label
+                document.getElementById('fecha-val').textContent = fechaDisplay;
+
+                // Clear the converter
+                document.getElementById('input-bs').value  = '';
+                document.getElementById('input-div').value = '';
+                activeField = null;
+
+                // Update badge: violet 'historial' style, date only
+                badge.className = 'badge historial';
+                document.getElementById('badge-text').textContent = fechaDisplay;
+
+                // Update day buttons so none is active (not among the visible cards)
+                let matched = false;
+                document.querySelectorAll('.date-btn:not(.cal-btn)').forEach(btn => {
+                    const isMatch = btn.dataset.fecha === date;
+                    btn.classList.toggle('active', isMatch);
+                    if (isMatch) matched = true;
+                });
+                if (!matched) selectedDateIndex = -1;
+
+            } catch (_) {
+                document.getElementById('badge-icon').innerHTML = '';
+                badge.className = 'badge error';
+                document.getElementById('badge-text').textContent = 'Error de conexión';
+                setTimeout(() => {
+                    badge.className = prevBadgeClass;
+                    document.getElementById('badge-text').textContent = prevBadgeText;
+                }, 3000);
+            }
+
+            // Reset input so the same date can be picked again next time
+            calInput.value = '';
+        }
+
+        function closeCalendarResult() {
+            document.getElementById('cal-result').style.display = 'none';
+            document.getElementById('calInput').value = '';
+        }
 
         function toggleTheme() {
             const isDark = document.body.dataset.theme === 'dark';
@@ -253,11 +390,13 @@
                 badge.className = 'badge success';
                 document.getElementById('badge-text').textContent = 'Tasa Oficial BCV';
             } else {
-                badge.className = 'badge success';
-                document.getElementById('badge-text').textContent = 'Historial — ' + fechaEntry;
+                badge.className = 'badge historial';
+                document.getElementById('badge-text').textContent = fechaEntry;
             }
             onCurrencyChange();
-            document.querySelectorAll('.date-btn').forEach((btn, i) => {
+            // Only toggle .active on day buttons, not on the calendar button
+            const dayBtns = document.querySelectorAll('.date-btn:not(.cal-btn)');
+            dayBtns.forEach((btn, i) => {
                 btn.classList.toggle('active', i === btnIndex);
             });
         }
@@ -266,7 +405,12 @@
             historialData = historial;
             const section = document.getElementById('historial-section');
             const selector = document.getElementById('date-selector');
-            selector.innerHTML = '';
+            const calBtn = document.getElementById('calBtn');
+
+            // Remove all day buttons (keep calBtn and calInput)
+            Array.from(selector.children).forEach(el => {
+                if (el !== calBtn && el.id !== 'calInput') el.remove();
+            });
             
             const ahora = new Date();
             const horaVenezuela = new Date(ahora.toLocaleString('en-US', { timeZone: 'America/Caracas' }));
@@ -308,12 +452,14 @@
                 btn.className = 'date-btn' + (histIndex === selectedDateIndex ? ' active' : '') + (entry.isHoy ? ' hoy-btn' : '') + (entry.isFuture ? ' future-btn' : '');
                 btn.innerHTML = entry.labelHtml;
                 btn.title = entry.entry.fecha.split('-').reverse().join('/');
+                btn.dataset.fecha = entry.entry.fecha;
                 btn.onclick = () => loadDateEntry(histIndex, j);
-                selector.appendChild(btn);
+                // Insert before the calendar button so it always stays last
+                selector.insertBefore(btn, calBtn);
             });
             
-            // Sin fechas que mostrar (p. ej. USDT sin historial guardado): ocultar la sección
-            section.style.display = entries.length ? 'block' : 'none';
+            // Always show the section (calendar button is always there)
+            section.style.display = 'block';
         }
 
         const currencyMeta = {

@@ -1,69 +1,274 @@
 {
   "rates": [
     {
-      "date": "2026-07-13",
-      "fechaVenezuela": "13 de Julio de 2026",
-      "usd": 721.3456,
-      "eur": 823.94258468,
-      "usdt": null,
+      "date": "2026-09-09",
+      "fechaVenezuela": "09 de Septiembre de 2026",
+      "usd": 820.1018,
+      "eur": 954.02442394,
+      "usdt": 964.397,
       "fuente": "BCV (www.bcv.org.ve)",
-      "updatedAt": "2026-07-11T00:16:53.630Z"
+      "updatedAt": "2026-09-09T04:57:32.980Z"
     },
     {
-      "date": "2026-06-30",
-      "fechaVenezuela": "30 de Junio de 2026",
-      "usd": 623.0223,
-      "eur": 710.10212687,
+      "date": "2026-09-08",
+      "fechaVenezuela": "08 de Septiembre de 2026",
+      "usd": 814.6908,
+      "eur": 947.29802151,
+      "usdt": 966.9725,
       "fuente": "BCV (www.bcv.org.ve)",
-      "updatedAt": "2026-06-27T03:49:06.209Z"
+      "updatedAt": "2026-09-08T21:24:26.038Z"
     },
     {
-      "date": "2026-05-21",
-      "fechaVenezuela": "21 de Mayo de 2026",
-      "usd": 523.675,
-      "eur": 609.34299325,
+      "date": "2026-09-07",
+      "fechaVenezuela": "07 de Septiembre de 2026",
+      "usd": 813.7361,
+      "eur": 945.65085917,
+      "usdt": 968.3675000000001,
       "fuente": "BCV (www.bcv.org.ve)",
-      "updatedAt": "2026-05-20T22:32:28.677Z"
+      "updatedAt": "2026-09-07T21:24:40.240Z"
     },
     {
-      "date": "2026-05-20",
-      "fechaVenezuela": "20 de Mayo de 2026",
-      "usd": 520.9142,
-      "eur": 604.15628916,
+      "date": "2026-09-04",
+      "fechaVenezuela": "04 de Septiembre de 2026",
+      "usd": 807.3862,
+      "eur": 938.44920184,
+      "usdt": 957.7125,
       "fuente": "BCV (www.bcv.org.ve)",
-      "updatedAt": "2026-05-19T22:38:54.941Z"
+      "updatedAt": "2026-09-04T18:14:04.761Z"
     },
     {
-      "date": "2026-05-19",
-      "fechaVenezuela": "19 de Mayo de 2026",
-      "usd": 517.9619,
-      "eur": 602.18768455,
+      "date": "2026-09-03",
+      "fechaVenezuela": "03 de Septiembre de 2026",
+      "usd": 804.8109,
+      "eur": 932.80802553,
+      "usdt": 977.30225,
       "fuente": "BCV (www.bcv.org.ve)",
-      "updatedAt": "2026-05-16T07:05:03.186Z"
+      "updatedAt": "2026-09-03T21:06:17.730Z"
     },
     {
-      "date": "2026-05-15",
-      "fechaVenezuela": "15 de mayo de 2026",
-      "usd": 515.18,
-      "eur": 601.4520428,
+      "date": "2026-09-02",
+      "fechaVenezuela": "02 de Septiembre de 2026",
+      "usd": 801.1752,
+      "eur": 929.09083243,
+      "usdt": 969.56275,
       "fuente": "BCV (www.bcv.org.ve)",
-      "updatedAt": "2026-05-15T10:00:00.000Z"
+      "updatedAt": "2026-09-02T20:52:12.918Z"
     },
     {
-      "date": "2026-05-14",
-      "fechaVenezuela": "14 de mayo de 2026",
-      "usd": 515.18,
-      "eur": 601.4520428,
+      "date": "2026-09-01",
+      "fechaVenezuela": "01 de Septiembre de 2026",
+      "usd": 798.326,
+      "eur": 926.55312212,
+      "usdt": 956.69975,
       "fuente": "BCV (www.bcv.org.ve)",
-      "updatedAt": "2026-05-14T10:00:00.000Z"
+      "updatedAt": "2026-09-01T20:37:19.567Z"
     },
     {
-      "date": "2026-05-13",
-      "fechaVenezuela": "13 de mayo de 2026",
-      "usd": 508.6004,
-      "eur": 596.60352721,
+      "date": "2026-08-31",
+      "fechaVenezuela": "31 de Agosto de 2026",
+      "usd": 794.9917,
+      "eur": 922.69121677,
+      "usdt": 925.76,
       "fuente": "BCV (www.bcv.org.ve)",
-      "updatedAt": "2026-05-13T10:00:00.000Z"
+      "updatedAt": "2026-08-31T18:11:39.432Z"
+    },
+    {
+      "date": "2026-08-28",
+      "fechaVenezuela": "28 de Agosto de 2026",
+      "usd": 791.6667,
+      "eur": 921.88003881,
+      "usdt": 931.0372500000001,
+      "fuente": "BCV (www.bcv.org.ve)",
+      "updatedAt": "2026-08-28T18:54:29.702Z"
+    },
+    {
+      "date": "2026-08-27",
+      "fechaVenezuela": "27 de Agosto de 2026",
+      "usd": 791.3248,
+      "eur": 921.81425952,
+      "usdt": 944.569,
+      "fuente": "BCV (www.bcv.org.ve)",
+      "updatedAt": "2026-08-27T20:25:45.731Z"
+    },
+    {
+      "date": "2026-08-26",
+      "fechaVenezuela": "26 de Agosto de 2026",
+      "usd": 787.5196,
+      "eur": 919.15350114,
+      "usdt": 956.475,
+      "fuente": "BCV (www.bcv.org.ve)",
+      "updatedAt": "2026-08-26T21:43:29.848Z"
+    },
+    {
+      "date": "2026-08-25",
+      "fechaVenezuela": "25 de Agosto de 2026",
+      "usd": 785.0693,
+      "eur": 916.02670993,
+      "usdt": 931.5,
+      "fuente": "BCV (www.bcv.org.ve)",
+      "updatedAt": "2026-08-25T16:31:44.659Z"
+    },
+    {
+      "date": "2026-08-24",
+      "fechaVenezuela": "24 de Agosto de 2026",
+      "usd": 784.6633,
+      "eur": 916.00808978,
+      "usdt": 930.225,
+      "fuente": "BCV (www.bcv.org.ve)",
+      "updatedAt": "2026-08-24T20:49:15.467Z"
+    },
+    {
+      "date": "2026-08-21",
+      "fechaVenezuela": "21 de Agosto de 2026",
+      "usd": 779.9522,
+      "eur": 911.21815526,
+      "usdt": 917.4825000000001,
+      "fuente": "BCV (www.bcv.org.ve)",
+      "updatedAt": "2026-08-21T19:46:17.823Z"
+    },
+    {
+      "date": "2026-08-20",
+      "fechaVenezuela": "20 de Agosto de 2026",
+      "usd": 777.4161,
+      "eur": 906.83255816,
+      "usdt": 919.975,
+      "fuente": "BCV (www.bcv.org.ve)",
+      "updatedAt": "2026-08-20T20:10:41.167Z"
+    },
+    {
+      "date": "2026-08-19",
+      "fechaVenezuela": "19 de Agosto de 2026",
+      "usd": 775.3356,
+      "eur": 897.82311808,
+      "usdt": 928.2875,
+      "fuente": "BCV (www.bcv.org.ve)",
+      "updatedAt": "2026-08-19T19:42:50.010Z"
+    },
+    {
+      "date": "2026-08-18",
+      "fechaVenezuela": "18 de Agosto de 2026",
+      "usd": 773.3125,
+      "eur": 896.02946062,
+      "usdt": 909.325,
+      "fuente": "BCV (www.bcv.org.ve)",
+      "updatedAt": "2026-08-19T03:15:00.790Z"
+    },
+    {
+      "date": "2026-08-17",
+      "fechaVenezuela": "17 de Agosto de 2026",
+      "usd": 772.5441,
+      "eur": 894.49018618,
+      "usdt": 883.033,
+      "fuente": "BCV (www.bcv.org.ve)",
+      "updatedAt": "2026-08-17T19:38:01.249Z"
+    },
+    {
+      "date": "2026-08-14",
+      "fechaVenezuela": "14 de Agosto de 2026",
+      "usd": 771.0714,
+      "eur": 889.45399204,
+      "usdt": 879.40325,
+      "fuente": "BCV (www.bcv.org.ve)",
+      "updatedAt": "2026-08-14T19:12:14.861Z"
+    },
+    {
+      "date": "2026-08-13",
+      "fechaVenezuela": "13 de Agosto de 2026",
+      "usd": 766.8603,
+      "eur": 885.07948384,
+      "usdt": 884.9435000000001,
+      "fuente": "BCV (www.bcv.org.ve)",
+      "updatedAt": "2026-08-13T18:58:20.825Z"
+    },
+    {
+      "date": "2026-08-12",
+      "fechaVenezuela": "12 de Agosto de 2026",
+      "usd": 764.3486,
+      "eur": 882.29523246,
+      "usdt": 878.50125,
+      "fuente": "BCV (www.bcv.org.ve)",
+      "updatedAt": "2026-08-12T17:43:03.866Z"
+    },
+    {
+      "date": "2026-08-11",
+      "fechaVenezuela": "11 de Agosto de 2026",
+      "usd": 761.2167,
+      "eur": 879.34991967,
+      "usdt": 871.6125,
+      "fuente": "BCV (www.bcv.org.ve)",
+      "updatedAt": "2026-08-11T19:52:31.967Z"
+    },
+    {
+      "date": "2026-08-10",
+      "fechaVenezuela": "10 de Agosto de 2026",
+      "usd": 757.5406,
+      "eur": 875.2169568,
+      "usdt": 867.25,
+      "fuente": "BCV (www.bcv.org.ve)",
+      "updatedAt": "2026-08-10T20:52:36.645Z"
+    },
+    {
+      "date": "2026-08-07",
+      "fechaVenezuela": "07 de Agosto de 2026",
+      "usd": 756.7083,
+      "eur": 871.89443742,
+      "usdt": 863.3165,
+      "fuente": "BCV (www.bcv.org.ve)",
+      "updatedAt": "2026-08-07T18:18:42.736Z"
+    },
+    {
+      "date": "2026-08-06",
+      "fechaVenezuela": "06 de Agosto de 2026",
+      "usd": 755.9001,
+      "eur": 872.83784547,
+      "usdt": 851.99925,
+      "fuente": "BCV (www.bcv.org.ve)",
+      "updatedAt": "2026-08-06T20:37:04.147Z"
+    },
+    {
+      "date": "2026-08-05",
+      "fechaVenezuela": "05 de Agosto de 2026",
+      "usd": 755.1552,
+      "eur": 870.04451212,
+      "usdt": 845.403,
+      "fuente": "BCV (www.bcv.org.ve)",
+      "updatedAt": "2026-08-05T20:19:28.461Z"
+    },
+    {
+      "date": "2026-08-04",
+      "fechaVenezuela": "04 de Agosto de 2026",
+      "usd": 752.0943,
+      "eur": 865.17919894,
+      "usdt": 848.8975,
+      "fuente": "BCV (www.bcv.org.ve)",
+      "updatedAt": "2026-08-04T19:06:25.424Z"
+    },
+    {
+      "date": "2026-08-03",
+      "fechaVenezuela": "03 de Agosto de 2026",
+      "usd": 748.7864,
+      "eur": 861.1867265,
+      "usdt": 847.97,
+      "fuente": "BCV (www.bcv.org.ve)",
+      "updatedAt": "2026-08-03T17:04:08.176Z"
+    },
+    {
+      "date": "2026-07-31",
+      "fechaVenezuela": "31 de Julio de 2026",
+      "usd": 746.6297,
+      "eur": 858.98253725,
+      "usdt": 846.25025,
+      "fuente": "BCV (www.bcv.org.ve)",
+      "updatedAt": "2026-07-31T19:52:52.066Z"
+    },
+    {
+      "date": "2026-07-30",
+      "fechaVenezuela": "30 de Julio de 2026",
+      "usd": 745.6371,
+      "eur": 848.82581826,
+      "usdt": 851.80525,
+      "fuente": "BCV (www.bcv.org.ve)",
+      "updatedAt": "2026-07-30T21:21:08.420Z"
     }
   ]
 }

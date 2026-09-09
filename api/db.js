@@ -21,7 +21,14 @@ async function getDB() {
   if (redis) {
     try {
       const data = await redis.get(REDIS_KEY);
-      if (data) return { rates: data };
+      if (data) {
+        // Redis may return an array directly, or a JSON-encoded string
+        let rates = data;
+        if (typeof rates === 'string') {
+          try { rates = JSON.parse(rates); } catch (_) {}
+        }
+        if (Array.isArray(rates) && rates.length > 0) return { rates };
+      }
     } catch (_) {}
   }
   try {
@@ -64,13 +71,13 @@ async function saveRate(date, fechaVenezuela, usd, eur, fuente, usdt) {
     db.rates.unshift(entry);
   }
 
-  db.rates = db.rates.slice(0, 30);
+  db.rates = db.rates.slice(0, 365);
   await saveDB(db);
 
   return entry;
 }
 
-async function getRates(days = 30) {
+async function getRates(days = 365) {
   const db = await getDB();
   return db.rates.slice(0, days);
 }
@@ -116,9 +123,9 @@ async function saveUsdtSnapshot(value, fetchedAt, dateKey) {
   // El último valor del día sobrescribe al anterior de esa misma fecha
   if (dateKey) daily[dateKey] = parseFloat(value);
 
-  // Conservar solo los 30 días más recientes
+  // Conservar solo los 365 días más recientes
   const trimmed = {};
-  Object.keys(daily).sort().reverse().slice(0, 30).forEach(k => { trimmed[k] = daily[k]; });
+  Object.keys(daily).sort().reverse().slice(0, 365).forEach(k => { trimmed[k] = daily[k]; });
 
   const snapshot = { value: parseFloat(value), fetchedAt: fetchedAt || Date.now(), daily: trimmed };
   if (redis) {

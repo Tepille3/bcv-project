@@ -5,3 +5,5 @@ api/usdt-cache.json
 .cache/
 .DS_Store
 Thumbs.db
+.vercel
+.env*
