@@ -7,13 +7,13 @@
       "eur": 1010.56078251,
       "usdt": null,
       "fuente": "BCV (www.bcv.org.ve)",
-      "updatedAt": "2026-11-15T02:04:47.240Z"
+      "updatedAt": "2026-11-15T02:19:09.355Z"
     },
     {
       "date": "2026-11-13",
       "fechaVenezuela": "13 de Noviembre de 2026",
       "usd": 911.6243,
-      "eur": 1009,
+      "eur": null,
       "usdt": 1054.1255,
       "fuente": "BCV (www.bcv.org.ve)",
       "updatedAt": "2026-11-13T19:57:35.912Z"
@@ -22,7 +22,7 @@
       "date": "2026-11-12",
       "fechaVenezuela": "12 de Noviembre de 2026",
       "usd": 904.4485,
-      "eur": 1003,
+      "eur": null,
       "usdt": 1068.4985,
       "fuente": "BCV (www.bcv.org.ve)",
       "updatedAt": "2026-11-12T20:11:15.862Z"
@@ -31,7 +31,7 @@
       "date": "2026-11-11",
       "fechaVenezuela": "11 de Noviembre de 2026",
       "usd": 901.6175,
-      "eur": 1007,
+      "eur": null,
       "usdt": 1074.2775,
       "fuente": "BCV (www.bcv.org.ve)",
       "updatedAt": "2026-11-11T20:33:03.877Z"
@@ -40,7 +40,7 @@
       "date": "2026-11-10",
       "fechaVenezuela": "10 de Noviembre de 2026",
       "usd": 899.2705,
-      "eur": 1006,
+      "eur": null,
       "usdt": 1076.42975,
       "fuente": "BCV (www.bcv.org.ve)",
       "updatedAt": "2026-11-10T18:48:55.502Z"
@@ -49,7 +49,7 @@
       "date": "2026-11-09",
       "fechaVenezuela": "09 de Noviembre de 2026",
       "usd": 897.5383,
-      "eur": 1001,
+      "eur": null,
       "usdt": 1038.6,
       "fuente": "BCV (www.bcv.org.ve)",
       "updatedAt": "2026-11-09T13:59:58.709Z"
@@ -58,7 +58,7 @@
       "date": "2026-11-06",
       "fechaVenezuela": "06 de Noviembre de 2026",
       "usd": 896.1225,
-      "eur": 1004,
+      "eur": null,
       "usdt": 1014.2875,
       "fuente": "BCV (www.bcv.org.ve)",
       "updatedAt": "2026-11-06T18:30:08.507Z"
@@ -67,7 +67,7 @@
       "date": "2026-11-05",
       "fechaVenezuela": "05 de Noviembre de 2026",
       "usd": 894.8876,
-      "eur": 1006,
+      "eur": null,
       "usdt": 1011.46725,
       "fuente": "BCV (www.bcv.org.ve)",
       "updatedAt": "2026-11-05T20:27:12.253Z"

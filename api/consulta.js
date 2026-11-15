@@ -11,17 +11,17 @@ async function getHistorial() {
   return rates.map(r => {
     // Para cada día, el USDT del historial es el último valor registrado ese día
     const usdtVal = daily[r.date] != null ? daily[r.date] : (r.usdt || null);
-    const eurVal = (r.eur && r.eur < 10 && r.usd > 500) ? r.eur * 1000 : r.eur;
+    const eurVal = (r.eur && r.eur > 10) ? r.eur : null;
     return {
       fecha: r.date,
       fechaVenezuela: r.fechaVenezuela,
       monedas: {
-        USD: formatRate(r.usd),
-        EUR: eurVal ? formatRate(eurVal) : null,
-        USDT: usdtVal ? formatRate(usdtVal) : null,
+        USD: r.usd ? formatRate(r.usd) : 'N/A',
+        EUR: eurVal ? formatRate(eurVal) : 'N/A',
+        USDT: usdtVal ? formatRate(usdtVal) : 'N/A',
       },
       tasas: {
-        USD: r.usd,
+        USD: r.usd || null,
         EUR: eurVal,
         USDT: usdtVal,
       },
@@ -353,12 +353,12 @@ const ahora = new Date();
         fecha: fechaGuardar,
         fechaVenezuela: fechaVenezuelaGuardar,
         monedas: {
-          USD: formatRate(resultado.usd),
-          EUR: resultado.eur && resultado.eur > 0 ? formatRate(resultado.eur) : null,
-          USDT: usdtValue && usdtValue > 0 ? formatRate(usdtValue) : null,
+          USD: resultado.usd && resultado.usd > 0 ? formatRate(resultado.usd) : 'N/A',
+          EUR: resultado.eur && resultado.eur > 0 ? formatRate(resultado.eur) : 'N/A',
+          USDT: usdtValue && usdtValue > 0 ? formatRate(usdtValue) : 'N/A',
         },
         tasas: {
-          USD: resultado.usd,
+          USD: resultado.usd && resultado.usd > 0 ? resultado.usd : null,
           EUR: resultado.eur && resultado.eur > 0 ? resultado.eur : null,
           USDT: usdtValue && usdtValue > 0 ? usdtValue : null,
         },

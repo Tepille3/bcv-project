@@ -25,19 +25,19 @@ module.exports = async function handler(req, res) {
     }
 
     const usdtVal = usdtDaily[date] != null ? usdtDaily[date] : (rate && rate.usdt ? rate.usdt : null);
-    const eurVal = rate && rate.eur ? ((rate.eur < 10 && rate.usd > 500) ? rate.eur * 1000 : rate.eur) : null;
+    const eurVal = (rate && rate.eur && rate.eur > 10) ? rate.eur : null;
 
     return res.status(200).json({
       success: true,
       date,
       fechaVenezuela: rate ? rate.fechaVenezuela : date,
       monedas: {
-        USD: rate ? formatRate(rate.usd) : null,
-        EUR: eurVal ? formatRate(eurVal) : null,
-        USDT: usdtVal ? formatRate(usdtVal) : null,
+        USD: rate && rate.usd ? formatRate(rate.usd) : 'N/A',
+        EUR: eurVal ? formatRate(eurVal) : 'N/A',
+        USDT: usdtVal ? formatRate(usdtVal) : 'N/A',
       },
       tasas: {
-        USD: rate ? rate.usd : null,
+        USD: rate && rate.usd ? rate.usd : null,
         EUR: eurVal,
         USDT: usdtVal || null,
       },

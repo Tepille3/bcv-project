@@ -241,8 +241,9 @@
                 // ── Data found: load into the main rate card ──────────────────
                 // Update every currency that came back so the calculator works
                 ['USD', 'EUR', 'USDT'].forEach(k => {
-                    if (data.tasas[k] != null)  allRates[k]        = data.tasas[k];
-                    if (data.monedas[k] != null) allRatesDisplay[k] = data.monedas[k];
+                    const mVal = data.monedas ? data.monedas[k] : null;
+                    allRatesDisplay[k] = (mVal && mVal !== 'null' && mVal !== 'N/A') ? mVal : 'N/A';
+                    allRates[k] = (data.tasas && data.tasas[k] != null && !isNaN(data.tasas[k])) ? data.tasas[k] : null;
                 });
 
                 // Refresh main display
@@ -353,15 +354,10 @@
             
             selectedDateIndex = index;
             const entry = historialData[index];
-            Object.keys(entry.monedas).forEach(k => {
-                if (entry.monedas[k]) {
-                    allRatesDisplay[k] = entry.monedas[k];
-                    if (entry.tasas && entry.tasas[k]) {
-                        allRates[k] = entry.tasas[k];
-                    } else {
-                        allRates[k] = parseFloat(entry.monedas[k].replace(/\./g, '').replace(',', '.'));
-                    }
-                }
+            ['USD', 'EUR', 'USDT'].forEach(k => {
+                const mVal = entry.monedas ? entry.monedas[k] : null;
+                allRatesDisplay[k] = (mVal && mVal !== 'null' && mVal !== 'N/A') ? mVal : 'N/A';
+                allRates[k] = (entry.tasas && entry.tasas[k] != null && !isNaN(entry.tasas[k])) ? entry.tasas[k] : null;
             });
             
             const fechaParts = (entry.fechaVenezuela || '').split(' de ');
@@ -478,7 +474,7 @@
             document.getElementById('rate-unit-label').textContent = selectedCurrency;
             const rateEl = document.getElementById('main-rate');
             rateEl.className = 'rate-value' + (meta.cls ? ' ' + meta.cls + '-color' : '');
-            rateEl.textContent = allRatesDisplay[selectedCurrency] || '—';
+            rateEl.textContent = allRatesDisplay[selectedCurrency] || 'N/A';
             document.getElementById('label-div').textContent = meta.label;
             document.getElementById('badge-div').textContent = selectedCurrency;
             document.getElementById('badge-div').className = 'currency-badge' + (meta.cls ? ' ' + meta.cls : '');
@@ -595,15 +591,10 @@
                     badge.className = 'badge success';
                     document.getElementById('badge-text').textContent = 'Tasa Oficial BCV';
                 }
-                Object.keys(data.monedas).forEach(k => {
-                    if (data.monedas[k]) {
-                        allRatesDisplay[k] = data.monedas[k];
-                        if (data.tasas && data.tasas[k]) {
-                            allRates[k] = data.tasas[k];
-                        } else {
-                            allRates[k] = parseFloat(data.monedas[k].replace(/\./g, '').replace(',', '.'));
-                        }
-                    }
+                ['USD', 'EUR', 'USDT'].forEach(k => {
+                    const mVal = data.monedas ? data.monedas[k] : null;
+                    allRatesDisplay[k] = (mVal && mVal !== 'null' && mVal !== 'N/A') ? mVal : 'N/A';
+                    allRates[k] = (data.tasas && data.tasas[k] != null && !isNaN(data.tasas[k])) ? data.tasas[k] : null;
                 });
                 onCurrencyChange();
                 if (data.fechaVenezuela) {
