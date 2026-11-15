@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '..', '.env.local') });
 
 const DB_FILE = path.join(__dirname, 'data.json');
 const USDT_FILE = path.join(__dirname, 'usdt-cache.json');

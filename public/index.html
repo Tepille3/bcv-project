@@ -358,6 +358,8 @@
                     allRatesDisplay[k] = entry.monedas[k];
                     if (entry.tasas && entry.tasas[k]) {
                         allRates[k] = entry.tasas[k];
+                    } else {
+                        allRates[k] = parseFloat(entry.monedas[k].replace(/\./g, '').replace(',', '.'));
                     }
                 }
             });
@@ -599,7 +601,7 @@
                         if (data.tasas && data.tasas[k]) {
                             allRates[k] = data.tasas[k];
                         } else {
-                            allRates[k] = parseFloat(data.monedas[k].replace(',', '.'));
+                            allRates[k] = parseFloat(data.monedas[k].replace(/\./g, '').replace(',', '.'));
                         }
                     }
                 });

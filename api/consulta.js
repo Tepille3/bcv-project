@@ -11,17 +11,18 @@ async function getHistorial() {
   return rates.map(r => {
     // Para cada día, el USDT del historial es el último valor registrado ese día
     const usdtVal = daily[r.date] != null ? daily[r.date] : (r.usdt || null);
+    const eurVal = (r.eur && r.eur < 10 && r.usd > 500) ? r.eur * 1000 : r.eur;
     return {
       fecha: r.date,
       fechaVenezuela: r.fechaVenezuela,
       monedas: {
-        USD: r.usd.toFixed(2).replace('.', ','),
-        EUR: r.eur ? r.eur.toFixed(2).replace('.', ',') : null,
-        USDT: usdtVal ? usdtVal.toFixed(2).replace('.', ',') : null,
+        USD: formatRate(r.usd),
+        EUR: eurVal ? formatRate(eurVal) : null,
+        USDT: usdtVal ? formatRate(usdtVal) : null,
       },
       tasas: {
         USD: r.usd,
-        EUR: r.eur,
+        EUR: eurVal,
         USDT: usdtVal,
       },
       ultima_actualizacion: r.fuente + ' | Fecha BCV: ' + r.fechaVenezuela,
@@ -36,14 +37,41 @@ function pushToHistorial(historial, entry) {
 }
 
 function parseNumber(str) {
-  if (!str || typeof str !== 'string') return null;
+  if (str == null) return null;
+  if (typeof str === 'number') return isNaN(str) ? null : str;
+  if (typeof str !== 'string') return null;
   const cleaned = str.replace(/[^\d.,]/g, '').trim();
-  const normalized = cleaned.replace(',', '.');
-  return parseFloat(normalized);
+  if (!cleaned) return null;
+
+  const lastDot = cleaned.lastIndexOf('.');
+  const lastComma = cleaned.lastIndexOf(',');
+
+  let normalized = cleaned;
+  if (lastComma > -1 && lastDot > -1) {
+    if (lastComma > lastDot) {
+      // Notación española: 1.010,56078251 -> 1010.56078251
+      normalized = cleaned.replace(/\./g, '').replace(',', '.');
+    } else {
+      // Notación anglosajona: 1,010.56078251 -> 1010.56078251
+      normalized = cleaned.replace(/,/g, '');
+    }
+  } else if (lastComma > -1) {
+    // Solo coma decimal: 914,0218 -> 914.0218
+    normalized = cleaned.replace(',', '.');
+  } else {
+    // Solo punto o entero: 1072.55
+    normalized = cleaned;
+  }
+
+  const val = parseFloat(normalized);
+  return isNaN(val) ? null : val;
 }
 
 function formatRate(val) {
-  return val.toFixed(2).replace('.', ',');
+  if (val == null || isNaN(val)) return null;
+  const parts = Number(val).toFixed(2).split('.');
+  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  return parts.join(',');
 }
 
 async function fetchFromBCV() {
@@ -59,13 +87,30 @@ async function fetchFromBCV() {
   const $ = cheerio.load(res.data);
   const tasas = {};
 
+  // Método 1: Búsqueda directa por los contenedores #dolar y #euro
+  const dolarContainer = $('#dolar');
+  if (dolarContainer.length) {
+    const strongText = dolarContainer.find('strong').text().trim();
+    const dVal = parseNumber(strongText || dolarContainer.text());
+    if (dVal && dVal > 0) tasas.usd = dVal;
+  }
+  const euroContainer = $('#euro');
+  if (euroContainer.length) {
+    const strongText = euroContainer.find('strong').text().trim();
+    const eVal = parseNumber(strongText || euroContainer.text());
+    if (eVal && eVal > 0) tasas.eur = eVal;
+  }
+
+  // Método 2: div.recuadrotsmc (por si cambian los IDs #dolar/#euro)
   $('div.recuadrotsmc').each((_, el) => {
     const text = $(el).text().replace(/\s+/g, ' ').trim();
     const match = text.match(/\b(USD|EUR)\b\s*([\d.,]+)/i);
     if (match) {
       const codigo = match[1].toUpperCase();
       const valor = parseNumber(match[2]);
-      if (valor && valor > 0) tasas[codigo.toLowerCase()] = valor;
+      if (valor && valor > 0 && !tasas[codigo.toLowerCase()]) {
+        tasas[codigo.toLowerCase()] = valor;
+      }
     }
   });
 
@@ -280,6 +325,11 @@ const ahora = new Date();
           // El BCV publicó la tasa para una fecha futura
           // Guardar SOLO para esa fecha futura, NO para hoy
           fechaGuardar = fechaKey; // usar la fecha futura para construir entry
+          fechaVenezuelaGuardar = `${dia} de ${matchFecha[2]} de ${anio}`;
+          await db.saveRate(fechaKey, fechaVenezuelaGuardar, resultado.usd, resultado.eur, fuente);
+        } else {
+          // El BCV tiene una fecha anterior (ej. fin de semana o feriado)
+          fechaGuardar = fechaKey;
           fechaVenezuelaGuardar = `${dia} de ${matchFecha[2]} de ${anio}`;
           await db.saveRate(fechaKey, fechaVenezuelaGuardar, resultado.usd, resultado.eur, fuente);
         }
